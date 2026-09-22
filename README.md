@@ -1,4 +1,4 @@
-# My Interactive portfolio
+# My Interactive Portfolio
 
 A small top-down game on a plain `<canvas>`: walk through the forest, stand next to a
 glowing podium, press **E** (or tap **Talk** on a phone) and a popup opens.
