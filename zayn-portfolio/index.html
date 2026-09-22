@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Zayn · AI Engineer</title>
+  <meta name="description" content="Zayn's interactive portfolio. Walk through a little forest and open the podiums to learn more.">
+  <meta name="theme-color" content="#EAF3EF">
+  <link rel="icon" href="assets/zayn-face.png">
+  <link rel="preload" href="assets/fonts/pixelify-sans-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ───────── Start screen ───────── -->
+  <main id="splash" class="splash">
+    <div class="splash__scene">
+      <section class="card" aria-labelledby="hero-name">
+        <h1 id="hero-name" class="card__name">Zayn</h1>
+        <p class="card__role">AI Engineer</p>
+        <p id="splash-intro" class="card__intro"></p>
+
+        <ul id="stats" class="stats" aria-label="About this portfolio"></ul>
+
+        <div class="toolkit">
+          <h2 class="toolkit__title">Your toolkit</h2>
+          <ul class="toolkit__list toolkit__list--keys">
+            <li><span class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>or arrow keys to walk</span></li>
+            <li><span class="keys"><kbd>Shift</kbd></span><span>hold to run</span></li>
+            <li><span class="keys"><kbd>E</kbd></span><span>open a podium</span></li>
+            <li><span class="keys"><kbd>Esc</kbd></span><span>close a popup</span></li>
+          </ul>
+          <ul class="toolkit__list toolkit__list--touch">
+            <li><span class="keys"><kbd>Stick</kbd></span><span>drag to walk, push far to run</span></li>
+            <li><span class="keys"><kbd>Talk</kbd></span><span>tap beside a podium to open it</span></li>
+          </ul>
+        </div>
+
+        <button id="start" class="cta" type="button" disabled>Loading the forest…</button>
+        <p id="load-error" class="card__error" role="alert" hidden></p>
+      </section>
+
+      <div class="hero" role="img" aria-label="Illustration of Zayn in a navy and maroon football shirt and khaki trousers, standing on a glowing pad">
+        <div class="hero__pad" aria-hidden="true"></div>
+        <img class="hero__img" src="assets/zayn-portrait.png" alt="" width="286" height="891">
+      </div>
+    </div>
+  </main>
+
+  <!-- ───────── Game ───────── -->
+  <div id="stage" class="stage" hidden>
+    <canvas id="game" aria-label="Interactive forest. Walk with the arrow keys or WASD, or use the on-screen stick."></canvas>
+
+    <div class="hud hud--id">
+      <img src="assets/zayn-face.png" alt="" width="36" height="36">
+      <div><strong>Zayn</strong><span>AI Engineer</span></div>
+    </div>
+    <button id="menu" class="hud hud--menu" type="button">Menu</button>
+    <p id="hint" class="hint" role="status"></p>
+
+    <div id="bubble" class="bubble" hidden></div>
+
+    <div id="stick" class="stick" aria-hidden="true"><div id="knob" class="stick__knob"></div></div>
+    <button id="act" class="act" type="button" hidden>Talk</button>
+  </div>
+
+  <!-- ───────── Popup ───────── -->
+  <div id="dialog" class="dialog" hidden>
+    <div class="dialog__scrim" data-close></div>
+    <article class="dialog__card" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+      <header class="dialog__head">
+        <img class="dialog__avatar" src="assets/zayn-face.png" alt="" width="52" height="52">
+        <div class="dialog__who"><strong>Zayn</strong><span>AI Engineer</span></div>
+        <button class="dialog__x" type="button" data-close aria-label="Close">&times;</button>
+      </header>
+      <h2 id="dlg-title" class="dialog__title"></h2>
+      <div id="dlg-body" class="dialog__body"></div>
+      <footer class="dialog__foot">
+        <button id="dlg-close" class="cta cta--small" type="button" data-close>Back to the forest</button>
+      </footer>
+    </article>
+  </div>
+
+  <script src="js/world.js"></script>
+  <script src="js/atlas.js"></script>
+  <script src="js/content.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
