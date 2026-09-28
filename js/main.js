@@ -19,9 +19,6 @@ import { ArenaAudio } from './audio.js';
 const DEBUG = new URLSearchParams(location.search).has('debug');
 
 // ── splash text ──
-document.getElementById('splash-name').textContent = SITE.name;
-document.getElementById('splash-role').textContent = SITE.role;
-document.getElementById('splash-intro').textContent = SITE.splashIntro;
 
 await document.fonts.load('italic 700 64px "Chakra Petch"').catch(() => {});
 
@@ -122,7 +119,7 @@ const IDLE = { throttle: 0, steer: 0, boost: false, jump: false };
 let state = 'splash';
 const startBtn = document.getElementById('start');
 startBtn.disabled = false;
-startBtn.textContent = 'Kick off';
+startBtn.querySelector('span').textContent = 'Kick off';
 startBtn.addEventListener('click', () => {
   state = 'play';
   audio.start();
@@ -140,7 +137,7 @@ camera.position.set(-24, 5, -9);
 
 function updateCamera(dt, t) {
   const c = physics.car, b = physics.ball;
-  const offset = state === 'splash' && innerWidth > 720 ? -innerWidth * 0.2 : 0;
+  const offset = 0; // splash content is centred, so the car orbits dead centre behind it
   if (offset) camera.setViewOffset(innerWidth, innerHeight, offset, 0, innerWidth, innerHeight);
   else if (camera.view?.enabled) camera.clearViewOffset();
   if (state === 'splash') {

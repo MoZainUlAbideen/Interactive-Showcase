@@ -351,7 +351,7 @@ export function buildArena(scene) {
   const standMat = new THREE.MeshStandardMaterial({ color: 0x161c3c, roughness: 0.9 });
   const crowdPalette = [0x2f7bff, 0xff7a1a, 0xe9ecf5, 0x6d5dfc, 0x16213f, 0x2bd4ff, 0xffc93c, 0x384066];
   const seats = [];
-  const tiers = 5, step = 2.4, rise = 1.3;
+  const tiers = 10, step = 2.2, rise = 1.55;
   const addStand = (len, alongX, sign, base) => {
     for (let i = 0; i < tiers; i++) {
       const off = base + 1.2 + i * step;
@@ -392,12 +392,12 @@ export function buildArena(scene) {
   const pole = new THREE.MeshStandardMaterial({ color: 0x3b4262, roughness: 0.6, metalness: 0.5 });
   const lamp = new THREE.MeshBasicMaterial({ color: 0xf4f8ff });
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
-    const x = sx * (halfX + 16), z = sz * (halfZ + 16);
-    const p = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.8, 30, 10), pole);
-    p.position.set(x, 15, z);
+    const x = sx * (halfX + 30), z = sz * (halfZ + 26);
+    const p = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.9, 38, 10), pole);
+    p.position.set(x, 19, z);
     scene.add(p);
     const head = new THREE.Group();
-    head.position.set(x, 31, z);
+    head.position.set(x, 39, z);
     head.lookAt(0, 0, 0);
     const panel = new THREE.Mesh(new THREE.BoxGeometry(7, 4, 0.4), pole);
     head.add(panel);

@@ -9,7 +9,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%232f7bff'/%3E%3Ctext x='32' y='44' font-size='34' font-family='Arial Black' font-style='italic' text-anchor='middle' fill='white'%3EZ%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,700;1,700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,700;1,700&family=Orbitron:wght@700;800;900&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <script type="importmap">
   {
@@ -25,23 +25,47 @@
 
   <!-- ───────── Start screen ───────── -->
   <main id="splash" class="splash">
-    <section class="splash__card" aria-labelledby="splash-name">
-      <p class="eyebrow">Interactive portfolio</p>
-      <h1 id="splash-name" class="splash__name">Zain</h1>
-      <p id="splash-role" class="splash__role">AI Full Stack Engineer</p>
-      <p id="splash-intro" class="splash__intro"></p>
+    <section class="splash__col" aria-labelledby="splash-name">
+      <svg class="splash__icon" viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="24" r="19" fill="none" stroke="currentColor" stroke-width="3.5"/>
+        <circle cx="24" cy="24" r="5" fill="currentColor"/>
+        <path d="M5.5 22h13M29.5 22h13M24 29v13.5" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
+      </svg>
 
-      <ul class="keys" aria-label="Controls">
-        <li><span class="keys__k"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>drive</li>
-        <li><span class="keys__k"><kbd>Shift</kbd></span>boost</li>
-        <li><span class="keys__k"><kbd>Space</kbd></span>jump</li>
-        <li><span class="keys__k"><kbd>E</kbd></span>open a podium</li>
-        <li><span class="keys__k"><kbd>C</kbd></span>ball cam</li>
-        <li><span class="keys__k"><kbd>R</kbd></span>reset</li>
-        <li><span class="keys__k"><kbd>M</kbd></span>sound on/off</li>
+      <h1 id="splash-name" class="splash__name">
+        <span class="splash__first">Muhammad</span>
+        <span class="splash__last">Zain-ul-Abideen</span>
+      </h1>
+      <p class="splash__role">AI Full Stack Engineer</p>
+      <p class="splash__intro">
+        I'm Zain. Step into my arena: drive my car, knock the ball into the net, and pull up to the
+        <mark>glowing podiums</mark> to explore my projects, experience, stack and certifications.
+      </p>
+
+      <ul class="stats" aria-label="At a glance">
+        <li class="stat stat--cyan"><strong>3</strong><span>Live AI products</span></li>
+        <li class="stat stat--blue"><strong>590+</strong><span>Tests written</span></li>
+        <li class="stat stat--gold"><strong>2</strong><span>Internships</span></li>
+        <li class="stat stat--pink"><strong>5</strong><span>Certifications</span></li>
       </ul>
 
-      <button id="start" class="cta" type="button" disabled>Warming up the engine…</button>
+      <div class="toolkit">
+        <h2 class="toolkit__title">Your toolkit</h2>
+        <ul class="toolkit__list">
+          <li><span class="toolkit__keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>Drive</li>
+          <li><span class="toolkit__keys"><kbd>E</kbd></span>Open a podium</li>
+          <li><span class="toolkit__keys"><kbd>Shift</kbd></span>Boost</li>
+          <li><span class="toolkit__keys"><kbd>Space</kbd></span>Jump</li>
+          <li><span class="toolkit__keys"><kbd>C</kbd></span>Ball cam</li>
+          <li><span class="toolkit__keys"><kbd>M</kbd></span>Sound on/off</li>
+        </ul>
+      </div>
+
+      <button id="start" class="cta" type="button" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M3.5 11h6M14.5 11h6M12 14.6V21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <span>Warming up the engine…</span>
+        <b aria-hidden="true">→</b>
+      </button>
       <p class="touch-note">Best on a laptop or desktop with a keyboard.</p>
       <p id="load-error" class="error" role="alert" hidden></p>
     </section>

@@ -71,7 +71,7 @@ export class ArenaAudio {
     const ctx = this.ctx;
     const bus = ctx.createGain();
     bus.gain.value = 0;
-    bus.gain.linearRampToValueAtTime(0.16, ctx.currentTime + 3); // fade in (kept low so the engine sits on top)
+    bus.gain.linearRampToValueAtTime(0.055, ctx.currentTime + 3); // fade in; a quiet bed so the portfolio stays the focus
     bus.connect(this.master);
 
     // crowd murmur: band-passed noise that swells slowly
@@ -137,7 +137,7 @@ export class ArenaAudio {
       return { o, mult };
     });
     // little rumble so it never sounds like a pure tone
-    this.lfo(this.engGain.gain, 17, 0.015);
+    this.lfo(this.engGain.gain, 17, 0.005);
   }
 
   // speed in units/s, throttle -1..1, onGround bool
@@ -149,7 +149,7 @@ export class ArenaAudio {
     const f = 42 + rev * 120 + (boosting ? 18 : 0);
     for (const { o, mult } of this.engOsc) o.frequency.setTargetAtTime(f * mult, t, 0.08);
     this.engFilter.frequency.setTargetAtTime(260 + rev * 1500 + (throttle ? 250 : 0), t, 0.1);
-    const vol = 0.06 + rev * 0.1 + (throttle ? 0.07 : 0) + (boosting ? 0.05 : 0);
+    const vol = 0.018 + rev * 0.035 + (throttle ? 0.02 : 0) + (boosting ? 0.015 : 0);
     this.engGain.gain.setTargetAtTime(vol, t, 0.12);
   }
 
@@ -159,7 +159,7 @@ export class ArenaAudio {
 
   setBoost(on) {
     if (!this.ctx) return;
-    this.boostGain.gain.setTargetAtTime(on ? 0.22 : 0, this.ctx.currentTime, on ? 0.04 : 0.12);
+    this.boostGain.gain.setTargetAtTime(on ? 0.08 : 0, this.ctx.currentTime, on ? 0.04 : 0.12);
   }
 
   hit(strength) {
