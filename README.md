@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 # Zayn's arena portfolio
 
 A small 3D football arena in the browser. You drive **Beyond** (a replica of my purple
 Mini 4WD), knock the ball into the goals, and drive up to the glowing podiums.
 Press **E** beside a podium to open it.
+=======
+# My Interactive Portfolio
+## Link: https://interactive-showcase-amber.vercel.app/
+A small top-down game on a plain `<canvas>`: walk through the forest, stand next to a
+glowing podium, press **E** (or tap **Talk** on a phone) and a popup opens.
+No build step, no npm, no libraries. It is just static files.
+>>>>>>> f72f3b1fab07db8ed51b7a39b7d6621f9754c333
 
 Plain static files: Three.js loads from a CDN, so there's no npm and no build step.
 
