@@ -4,86 +4,100 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Zayn · AI Engineer</title>
-  <meta name="description" content="Zayn's interactive portfolio. Walk through a little forest and open the podiums to learn more.">
-  <meta name="theme-color" content="#EAF3EF">
-  <link rel="icon" href="assets/zayn-face.png">
-  <link rel="preload" href="assets/fonts/pixelify-sans-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <meta name="description" content="Zayn's interactive portfolio. Drive a car around a football arena, score a goal, and open the glowing podiums.">
+  <meta name="theme-color" content="#070a1f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%232f7bff'/%3E%3Ctext x='32' y='44' font-size='34' font-family='Arial Black' font-style='italic' text-anchor='middle' fill='white'%3EZ%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,700;1,700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
+  <canvas id="scene" tabindex="-1" aria-label="3D football arena. Drive with W A S D, press E beside a podium to open it."></canvas>
 
   <!-- ───────── Start screen ───────── -->
   <main id="splash" class="splash">
-    <div class="splash__scene">
-      <section class="card" aria-labelledby="hero-name">
-        <h1 id="hero-name" class="card__name">Zayn</h1>
-        <p class="card__role">AI Engineer</p>
-        <p id="splash-intro" class="card__intro"></p>
+    <section class="splash__card" aria-labelledby="splash-name">
+      <p class="eyebrow">Interactive portfolio</p>
+      <h1 id="splash-name" class="splash__name">Zayn</h1>
+      <p id="splash-role" class="splash__role">AI Engineer</p>
+      <p id="splash-intro" class="splash__intro"></p>
 
-        <ul id="stats" class="stats" aria-label="About this portfolio"></ul>
+      <ul class="keys" aria-label="Controls">
+        <li><span class="keys__k"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>drive</li>
+        <li><span class="keys__k"><kbd>Shift</kbd></span>boost</li>
+        <li><span class="keys__k"><kbd>Space</kbd></span>jump</li>
+        <li><span class="keys__k"><kbd>E</kbd></span>open a podium</li>
+        <li><span class="keys__k"><kbd>C</kbd></span>ball cam</li>
+        <li><span class="keys__k"><kbd>R</kbd></span>reset</li>
+      </ul>
 
-        <div class="toolkit">
-          <h2 class="toolkit__title">Your toolkit</h2>
-          <ul class="toolkit__list toolkit__list--keys">
-            <li><span class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>or arrow keys to walk</span></li>
-            <li><span class="keys"><kbd>Shift</kbd></span><span>hold to run</span></li>
-            <li><span class="keys"><kbd>E</kbd></span><span>open a podium</span></li>
-            <li><span class="keys"><kbd>Esc</kbd></span><span>close a popup</span></li>
-          </ul>
-          <ul class="toolkit__list toolkit__list--touch">
-            <li><span class="keys"><kbd>Stick</kbd></span><span>drag to walk, push far to run</span></li>
-            <li><span class="keys"><kbd>Talk</kbd></span><span>tap beside a podium to open it</span></li>
-          </ul>
-        </div>
-
-        <button id="start" class="cta" type="button" disabled>Loading the forest…</button>
-        <p id="load-error" class="card__error" role="alert" hidden></p>
-      </section>
-
-      <div class="hero" role="img" aria-label="Illustration of Zayn in a navy and maroon football shirt and khaki trousers, standing on a glowing pad">
-        <div class="hero__pad" aria-hidden="true"></div>
-        <img class="hero__img" src="assets/zayn-portrait.png" alt="" width="286" height="891">
-      </div>
-    </div>
+      <button id="start" class="cta" type="button" disabled>Warming up the engine…</button>
+      <p class="touch-note">Best on a laptop or desktop with a keyboard.</p>
+      <p id="load-error" class="error" role="alert" hidden></p>
+    </section>
   </main>
 
-  <!-- ───────── Game ───────── -->
-  <div id="stage" class="stage" hidden>
-    <canvas id="game" aria-label="Interactive forest. Walk with the arrow keys or WASD, or use the on-screen stick."></canvas>
-
-    <div class="hud hud--id">
-      <img src="assets/zayn-face.png" alt="" width="36" height="36">
-      <div><strong>Zayn</strong><span>AI Engineer</span></div>
+  <!-- ───────── HUD ───────── -->
+  <div id="hud" class="hud" hidden>
+    <div class="score" aria-label="Score">
+      <span id="score-blue" class="score__n score__n--blue">0</span>
+      <span class="score__mid"><strong id="hud-name">Zayn</strong><span>AI Engineer</span></span>
+      <span id="score-orange" class="score__n score__n--orange">0</span>
     </div>
-    <button id="menu" class="hud hud--menu" type="button">Menu</button>
-    <p id="hint" class="hint" role="status"></p>
 
-    <div id="bubble" class="bubble" hidden></div>
+    <div id="prompt" class="prompt" hidden role="status">
+      <kbd>E</kbd><span>Open</span><strong id="prompt-label"></strong>
+    </div>
 
-    <div id="stick" class="stick" aria-hidden="true"><div id="knob" class="stick__knob"></div></div>
-    <button id="act" class="act" type="button" hidden>Talk</button>
+    <div id="help" class="help">
+      <span><kbd>WASD</kbd> drive</span><span><kbd>Shift</kbd> boost</span><span><kbd>Space</kbd> jump</span>
+      <span><kbd>E</kbd> open</span><span><kbd>R</kbd> reset</span><span><kbd>H</kbd> hide</span>
+    </div>
+    <p id="ballcam" class="ballcam"><span class="ballcam__dot"></span>Ball cam <kbd>C</kbd></p>
+
+    <div class="boost" aria-label="Boost">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="45" class="boost__track"/>
+        <circle id="boost-arc" cx="50" cy="50" r="45" class="boost__arc"/>
+      </svg>
+      <span id="boost-num" class="boost__num">100</span>
+    </div>
+
+    <div id="goal" class="goal" hidden><span>GOAL!</span></div>
   </div>
 
-  <!-- ───────── Popup ───────── -->
-  <div id="dialog" class="dialog" hidden>
-    <div class="dialog__scrim" data-close></div>
-    <article class="dialog__card" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
-      <header class="dialog__head">
-        <img class="dialog__avatar" src="assets/zayn-face.png" alt="" width="52" height="52">
-        <div class="dialog__who"><strong>Zayn</strong><span>AI Engineer</span></div>
-        <button class="dialog__x" type="button" data-close aria-label="Close">&times;</button>
-      </header>
-      <h2 id="dlg-title" class="dialog__title"></h2>
-      <div id="dlg-body" class="dialog__body"></div>
-      <footer class="dialog__foot">
-        <button id="dlg-close" class="cta cta--small" type="button" data-close>Back to the forest</button>
-      </footer>
+  <!-- ───────── Podium popup ───────── -->
+  <div id="panel" class="panel" hidden>
+    <div class="panel__scrim" data-close></div>
+    <article id="panel-card" class="panel__card" role="dialog" aria-modal="true" aria-labelledby="panel-title" tabindex="-1">
+      <button class="panel__x" type="button" data-close aria-label="Close">&times;</button>
+      <p id="panel-kicker" class="panel__kicker"></p>
+      <h2 id="panel-title" class="panel__title"></h2>
+      <div id="panel-body" class="panel__body"></div>
+      <footer class="panel__foot"><kbd>Esc</kbd> back to the pitch</footer>
     </article>
   </div>
 
-  <script src="js/world.js"></script>
-  <script src="js/atlas.js"></script>
-  <script src="js/content.js"></script>
-  <script src="js/game.js"></script>
+  <script type="module" src="js/main.js"></script>
+  <script>
+    // If the 3D engine can't load (offline, old browser), say so instead of hanging.
+    setTimeout(() => {
+      const b = document.getElementById('start');
+      if (b && b.disabled) {
+        const e = document.getElementById('load-error');
+        e.textContent = 'The 3D arena is taking a while to load. Check your connection, or try a recent Chrome, Edge or Firefox.';
+        e.hidden = false;
+      }
+    }, 15000);
+  </script>
 </body>
 </html>

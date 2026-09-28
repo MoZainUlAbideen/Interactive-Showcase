@@ -1,0 +1,154 @@
+// ─────────────────────────────────────────────────────────────
+//  Glowing podiums: hex pedestal, light beam, floating icon, label.
+// ─────────────────────────────────────────────────────────────
+import * as THREE from 'three';
+
+export const PODIUM_R = 2.3;   // collision radius of the base
+export const PODIUM_H = 1.9;   // top of the pedestal
+export const REACH = 6.2;      // how close the car must be to press E
+
+function labelTexture(text, color) {
+  const c = document.createElement('canvas');
+  c.width = 1024; c.height = 256;
+  const ctx = c.getContext('2d');
+  ctx.font = 'italic 700 104px "Chakra Petch", "Arial Black", sans-serif';
+  const tw = Math.min(940, ctx.measureText(text).width + 120);
+  const x0 = (1024 - tw) / 2, y0 = 44, h = 168;
+  // slanted plate, Rocket League style
+  ctx.beginPath();
+  ctx.moveTo(x0 + 30, y0); ctx.lineTo(x0 + tw, y0); ctx.lineTo(x0 + tw - 30, y0 + h); ctx.lineTo(x0, y0 + h);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(8,12,38,.82)';
+  ctx.fill();
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = color;
+  ctx.stroke();
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 512, y0 + h / 2 + 6, tw - 90);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return { tex: t, aspect: tw / 1024 };
+}
+
+function beamTexture() {
+  const c = document.createElement('canvas');
+  c.width = 4; c.height = 256;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 0, 256);
+  g.addColorStop(0, 'rgba(255,255,255,0)');
+  g.addColorStop(0.7, 'rgba(255,255,255,.35)');
+  g.addColorStop(1, 'rgba(255,255,255,.9)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 4, 256);
+  return new THREE.CanvasTexture(c);
+}
+
+function iconFor(kind, mat) {
+  const g = new THREE.Group();
+  if (kind === 'about') {
+    g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.62, 0), mat));
+    const wire = new THREE.Mesh(new THREE.IcosahedronGeometry(0.85, 0), new THREE.MeshBasicMaterial({ color: mat.emissive, wireframe: true }));
+    g.add(wire);
+  } else if (kind === 'interests') {
+    g.add(new THREE.Mesh(new THREE.TorusKnotGeometry(0.42, 0.13, 90, 12), mat));
+  } else if (kind === 'certs') {
+    const medal = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.12, 32), mat);
+    medal.rotation.x = Math.PI / 2;
+    g.add(medal);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.07, 8, 32), mat);
+    g.add(ring);
+    const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.28, 0), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    star.position.z = 0.1;
+    g.add(star);
+  } else {
+    g.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.7, 0), mat));
+    const cage = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 1.1), new THREE.MeshBasicMaterial({ color: mat.emissive, wireframe: true }));
+    g.add(cage);
+  }
+  return g;
+}
+
+export function buildPodiums(scene, list) {
+  const baseMat = new THREE.MeshStandardMaterial({ color: 0x1b2140, roughness: 0.45, metalness: 0.7 });
+  const beamAlpha = beamTexture();
+  const out = [];
+
+  for (const data of list) {
+    const color = new THREE.Color(data.color);
+    const g = new THREE.Group();
+    g.position.set(data.x, 0, data.z);
+
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(2.0, PODIUM_R, 0.55, 6), baseMat);
+    base.position.y = 0.275;
+    base.castShadow = base.receiveShadow = true;
+    const column = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.35, 1.25, 6), baseMat);
+    column.position.y = 1.18;
+    column.castShadow = true;
+    const glowMat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 2.2, roughness: 0.3 });
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.1, 6), glowMat);
+    cap.position.y = PODIUM_H - 0.05;
+    // glowing trims
+    const trim = new THREE.Mesh(new THREE.CylinderGeometry(2.04, 2.04, 0.08, 6, 1, true), glowMat);
+    trim.position.y = 0.55;
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(2.7, 2.95, 48),
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.8, depthWrite: false, side: THREE.DoubleSide }),
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.04;
+    const disc = new THREE.Mesh(
+      new THREE.CircleGeometry(2.7, 48),
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.12, depthWrite: false }),
+    );
+    disc.rotation.x = -Math.PI / 2;
+    disc.position.y = 0.03;
+
+    const beam = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.1, 1.1, 9, 24, 1, true),
+      new THREE.MeshBasicMaterial({
+        color, alphaMap: beamAlpha, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending,
+        depthWrite: false, side: THREE.DoubleSide,
+      }),
+    );
+    beam.position.y = PODIUM_H + 4.5;
+
+    const icon = iconFor(data.kind, glowMat);
+    icon.position.y = 3.3;
+
+    const { tex, aspect } = labelTexture(data.label, data.color);
+    const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+    label.scale.set(7.2, 1.8, 1);
+    label.position.y = 5.3;
+    label.renderOrder = 10;
+    label.userData.aspect = aspect;
+
+    const light = new THREE.PointLight(color, 25, 12, 2);
+    light.position.y = 2.6;
+
+    g.add(base, column, cap, trim, ring, disc, beam, icon, label, light);
+    scene.add(g);
+    out.push({ data, group: g, ring, disc, beam, icon, label, light, glowMat, x: data.x, z: data.z, near: 0 });
+  }
+  return out;
+}
+
+// t = seconds, activeId = podium the car is next to (or null)
+export function updatePodiums(pods, t, dt, activeId) {
+  for (const p of pods) {
+    const target = p.data.id === activeId ? 1 : 0;
+    p.near += (target - p.near) * Math.min(1, dt * 8);
+    const pulse = 0.5 + 0.5 * Math.sin(t * 2.4 + p.x * 0.3);
+    p.icon.rotation.y = t * 0.9;
+    p.icon.position.y = 3.3 + Math.sin(t * 1.8 + p.z) * 0.18;
+    p.ring.material.opacity = 0.45 + 0.35 * pulse + 0.2 * p.near;
+    p.ring.scale.setScalar(1 + 0.04 * pulse + 0.08 * p.near);
+    p.beam.material.opacity = 0.35 + 0.15 * pulse + 0.4 * p.near;
+    p.glowMat.emissiveIntensity = 1.8 + 0.8 * pulse + 1.5 * p.near;
+    p.light.intensity = 18 + 10 * pulse + 30 * p.near;
+    const s = 1 + 0.12 * p.near;
+    p.label.scale.set(7.2 * s, 1.8 * s, 1);
+  }
+}
