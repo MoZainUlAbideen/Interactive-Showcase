@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-//  "BEYOND": a replica of Zayn's translucent-purple Mini 4WD.
+//  "BEYOND": a replica of Zain's translucent-purple Mini 4WD.
 //  Built from simple shapes so there's no model file to load.
 //  Car faces +z. Ground is y = 0. Length ≈ 5, width ≈ 3.2 (with rollers).
 // ─────────────────────────────────────────────────────────────

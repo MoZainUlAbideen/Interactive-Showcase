@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Zayn · AI Engineer</title>
-  <meta name="description" content="Zayn's interactive portfolio. Drive a car around a football arena, score a goal, and open the glowing podiums.">
+  <title>Zain · AI Full Stack Engineer</title>
+  <meta name="description" content="Muhammad Zain-ul-Abideen's interactive portfolio. Drive a car around a football arena, score a goal, and open the glowing podiums.">
   <meta name="theme-color" content="#070a1f">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%232f7bff'/%3E%3Ctext x='32' y='44' font-size='34' font-family='Arial Black' font-style='italic' text-anchor='middle' fill='white'%3EZ%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,8 +27,8 @@
   <main id="splash" class="splash">
     <section class="splash__card" aria-labelledby="splash-name">
       <p class="eyebrow">Interactive portfolio</p>
-      <h1 id="splash-name" class="splash__name">Zayn</h1>
-      <p id="splash-role" class="splash__role">AI Engineer</p>
+      <h1 id="splash-name" class="splash__name">Zain</h1>
+      <p id="splash-role" class="splash__role">AI Full Stack Engineer</p>
       <p id="splash-intro" class="splash__intro"></p>
 
       <ul class="keys" aria-label="Controls">
@@ -38,6 +38,7 @@
         <li><span class="keys__k"><kbd>E</kbd></span>open a podium</li>
         <li><span class="keys__k"><kbd>C</kbd></span>ball cam</li>
         <li><span class="keys__k"><kbd>R</kbd></span>reset</li>
+        <li><span class="keys__k"><kbd>M</kbd></span>sound on/off</li>
       </ul>
 
       <button id="start" class="cta" type="button" disabled>Warming up the engine…</button>
@@ -48,11 +49,12 @@
 
   <!-- ───────── HUD ───────── -->
   <div id="hud" class="hud" hidden>
-    <div class="score" aria-label="Score">
-      <span id="score-blue" class="score__n score__n--blue">0</span>
-      <span class="score__mid"><strong id="hud-name">Zayn</strong><span>AI Engineer</span></span>
-      <span id="score-orange" class="score__n score__n--orange">0</span>
+    <div class="score" aria-live="polite">
+      <span class="score__label">Goals</span>
+      <span id="score-goals" class="score__n">0</span>
     </div>
+
+    <button id="mute" class="mute" type="button" aria-pressed="false"><span>Sound on</span><kbd>M</kbd></button>
 
     <div id="prompt" class="prompt" hidden role="status">
       <kbd>E</kbd><span>Open</span><strong id="prompt-label"></strong>
@@ -60,7 +62,7 @@
 
     <div id="help" class="help">
       <span><kbd>WASD</kbd> drive</span><span><kbd>Shift</kbd> boost</span><span><kbd>Space</kbd> jump</span>
-      <span><kbd>E</kbd> open</span><span><kbd>R</kbd> reset</span><span><kbd>H</kbd> hide</span>
+      <span><kbd>E</kbd> open</span><span><kbd>R</kbd> reset</span><span><kbd>M</kbd> sound</span><span><kbd>H</kbd> hide</span>
     </div>
     <p id="ballcam" class="ballcam"><span class="ballcam__dot"></span>Ball cam <kbd>C</kbd></p>
 

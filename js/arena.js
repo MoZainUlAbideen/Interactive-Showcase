@@ -25,63 +25,98 @@ function canvasTex(w, h, draw) {
   return t;
 }
 
-function pitchTexture() {
+// Tech-grid floor: glowing rounded tiles (blue half → orange half) with the
+// football markings kept on top. Returns { map, glow } canvas textures.
+function pitchTextures() {
   const { halfX, halfZ, goalHalfW } = FIELD;
   const S = 20; // px per unit
-  return canvasTex(halfX * 2 * S, halfZ * 2 * S, (ctx, w, h) => {
-    const P = (x, z) => [(x + halfX) * S, (z + halfZ) * S];
-    // mowing stripes
-    const bands = 14;
-    for (let i = 0; i < bands; i++) {
-      ctx.fillStyle = i % 2 ? '#2c8a3c' : '#277a35';
-      ctx.fillRect((i * w) / bands, 0, w / bands + 1, h);
-    }
-    // grain
-    const img = ctx.getImageData(0, 0, w, h);
-    for (let i = 0; i < img.data.length; i += 4) {
-      const n = (Math.random() - 0.5) * 14;
-      img.data[i] += n; img.data[i + 1] += n; img.data[i + 2] += n;
-    }
-    ctx.putImageData(img, 0, 0);
-    // team tint toward each goal
-    const g = ctx.createLinearGradient(0, 0, w, 0);
-    g.addColorStop(0, 'rgba(47,123,255,.28)');
-    g.addColorStop(0.3, 'rgba(47,123,255,0)');
-    g.addColorStop(0.7, 'rgba(255,122,26,0)');
-    g.addColorStop(1, 'rgba(255,122,26,.28)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, w, h);
+  const W = halfX * 2 * S, Hh = halfZ * 2 * S;
+  const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = Hh; return c; };
+  const baseC = mk(), glowC = mk();
+  const base = baseC.getContext('2d'), glow = glowC.getContext('2d');
+  const P = (x, z) => [(x + halfX) * S, (z + halfZ) * S];
+  const mix = (t) => {
+    // blue → violet → orange across the pitch
+    const stops = [[47, 123, 255], [140, 80, 255], [255, 110, 40]];
+    const k = t < 0.5 ? t * 2 : (t - 0.5) * 2;
+    const [a, b] = t < 0.5 ? [stops[0], stops[1]] : [stops[1], stops[2]];
+    return a.map((v, i) => Math.round(v + (b[i] - v) * k));
+  };
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  const rrect = (ctx, x, y, w, h, r) => {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  };
 
-    // lines
-    ctx.strokeStyle = 'rgba(255,255,255,.92)';
-    ctx.lineWidth = 0.3 * S;
-    const rect = (x0, z0, x1, z1) => {
-      const [a, b] = P(x0, z0); const [c, d] = P(x1, z1);
-      ctx.strokeRect(a, b, c - a, d - b);
-    };
+  // base: deep navy with a soft vignette
+  const bg = base.createLinearGradient(0, 0, W, 0);
+  bg.addColorStop(0, '#0a1233'); bg.addColorStop(0.5, '#0d0f2e'); bg.addColorStop(1, '#1a0f26');
+  base.fillStyle = bg; base.fillRect(0, 0, W, Hh);
+  glow.fillStyle = '#000'; glow.fillRect(0, 0, W, Hh);
+
+  // tiles
+  const cols = 10, rows = 6;
+  const tw = W / cols, th = Hh / rows;
+  const inset = 0.9 * S, rad = 1.8 * S;
+  for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+    const x = i * tw + inset, y = j * th + inset, w = tw - inset * 2, h = th - inset * 2;
+    const c = mix((i + 0.5) / cols);
+    // tile body, slightly lighter than the gaps
+    rrect(base, x, y, w, h, rad);
+    base.fillStyle = 'rgba(30,40,95,.35)'; base.fill();
+    // circuit dots
+    base.fillStyle = 'rgba(120,150,255,.10)';
+    for (let dx = x + 12; dx < x + w - 8; dx += 16) for (let dy = y + 12; dy < y + h - 8; dy += 16) {
+      if (Math.random() < 0.5) base.fillRect(dx, dy, 3, 3);
+    }
+    // a few short "traces"
+    base.strokeStyle = 'rgba(120,150,255,.12)'; base.lineWidth = 3;
+    for (let k = 0; k < 3; k++) {
+      const sx = x + 20 + Math.random() * (w - 40), sy = y + 20 + Math.random() * (h - 40);
+      base.beginPath(); base.moveTo(sx, sy); base.lineTo(sx + (Math.random() - 0.5) * 120, sy); base.lineTo(sx + (Math.random() - 0.5) * 120, sy + (Math.random() - 0.5) * 80); base.stroke();
+    }
+    // glowing outline
+    rrect(glow, x, y, w, h, rad);
+    glow.shadowColor = rgba(c, 1); glow.shadowBlur = 10;
+    glow.strokeStyle = rgba(c, 0.9); glow.lineWidth = 0.22 * S;
+    glow.stroke();
+    glow.shadowBlur = 0;
+    rrect(base, x, y, w, h, rad);
+    base.strokeStyle = rgba(c, 0.55); base.lineWidth = 0.22 * S; base.stroke();
+  }
+
+  // football markings, bright white-cyan, on both layers
+  for (const ctx of [base, glow]) {
+    ctx.save();
+    ctx.strokeStyle = ctx === glow ? 'rgba(200,235,255,.95)' : 'rgba(220,240,255,.9)';
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.lineWidth = 0.32 * S;
+    if (ctx === glow) { ctx.shadowColor = '#7fd7ff'; ctx.shadowBlur = 8; }
+    const rect = (x0, z0, x1, z1) => { const [a, b] = P(x0, z0); const [c, d] = P(x1, z1); ctx.strokeRect(a, b, c - a, d - b); };
     rect(-halfX + 0.5, -halfZ + 0.5, halfX - 0.5, halfZ - 0.5);
     ctx.beginPath(); ctx.moveTo(...P(0, -halfZ)); ctx.lineTo(...P(0, halfZ)); ctx.stroke();
     ctx.beginPath(); ctx.arc(...P(0, 0), 9.15 * S, 0, Math.PI * 2); ctx.stroke();
-    ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.arc(...P(0, 0), 0.5 * S, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(...P(0, 0), 0.6 * S, 0, Math.PI * 2); ctx.fill();
     for (const s of [-1, 1]) {
       const gx = s * (halfX - 0.5);
-      rect(Math.min(gx, s * 34), -21, Math.max(gx, s * 34), 21);                           // penalty box
-      rect(Math.min(gx, s * 44), -(goalHalfW + 3), Math.max(gx, s * 44), goalHalfW + 3);  // six-yard box
-      ctx.beginPath(); ctx.arc(...P(s * 39, 0), 0.4 * S, 0, Math.PI * 2); ctx.fill();      // spot
-      ctx.beginPath();                                                                    // D arc
+      rect(Math.min(gx, s * 34), -21, Math.max(gx, s * 34), 21);
+      rect(Math.min(gx, s * 44), -(goalHalfW + 3), Math.max(gx, s * 44), goalHalfW + 3);
+      ctx.beginPath(); ctx.arc(...P(s * 39, 0), 0.45 * S, 0, Math.PI * 2); ctx.fill();
       const [cx, cy] = P(s * 39, 0);
       const a = Math.acos(5 / 9.15);
-      if (s > 0) ctx.arc(cx, cy, 9.15 * S, Math.PI - a, Math.PI + a);
-      else ctx.arc(cx, cy, 9.15 * S, -a, a);
+      ctx.beginPath();
+      if (s > 0) ctx.arc(cx, cy, 9.15 * S, Math.PI - a, Math.PI + a); else ctx.arc(cx, cy, 9.15 * S, -a, a);
       ctx.stroke();
-      for (const t of [-1, 1]) {                                                          // corner arcs
-        ctx.beginPath();
-        ctx.arc(...P(s * (halfX - 0.5), t * (halfZ - 0.5)), 1.5 * S, 0, Math.PI * 2);
-        ctx.stroke();
+      for (const t of [-1, 1]) {
+        ctx.beginPath(); ctx.arc(...P(s * (halfX - 0.5), t * (halfZ - 0.5)), 1.5 * S, 0, Math.PI * 2); ctx.stroke();
       }
     }
-  });
+    ctx.restore();
+  }
+
+  const tex = (c) => { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
+  return { map: tex(baseC), glow: tex(glowC) };
 }
 
 function netTexture(color) {
@@ -198,8 +233,12 @@ export function buildArena(scene) {
   outer.receiveShadow = true;
   scene.add(outer);
 
-  const pitchMat = new THREE.MeshStandardMaterial({ map: pitchTexture(), roughness: 0.92 });
-  pitchMat.map.anisotropy = 8;
+  const { map, glow } = pitchTextures();
+  // Lambert (no specular) keeps the floor dark navy at low camera angles;
+  // the glow comes entirely from the emissive tile/line layer.
+  const pitchMat = new THREE.MeshLambertMaterial({
+    map, color: 0x8a96c4, emissiveMap: glow, emissive: 0xffffff, emissiveIntensity: 0.8,
+  });
   const pitch = new THREE.Mesh(new THREE.PlaneGeometry(halfX * 2, halfZ * 2), pitchMat);
   pitch.rotation.x = -Math.PI / 2;
   pitch.receiveShadow = true;

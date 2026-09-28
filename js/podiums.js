@@ -54,6 +54,21 @@ function iconFor(kind, mat) {
     g.add(wire);
   } else if (kind === 'interests') {
     g.add(new THREE.Mesh(new THREE.TorusKnotGeometry(0.42, 0.13, 90, 12), mat));
+  } else if (kind === 'experience') {
+    // briefcase
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 0.4), mat));
+    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.06, 8, 20, Math.PI), mat);
+    handle.position.y = 0.4;
+    g.add(handle);
+    const band = new THREE.Mesh(new THREE.BoxGeometry(1.24, 0.08, 0.44), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    g.add(band);
+  } else if (kind === 'stack') {
+    // three stacked layers
+    for (let i = 0; i < 3; i++) {
+      const layer = new THREE.Mesh(new THREE.BoxGeometry(1.1 - i * 0.18, 0.16, 1.1 - i * 0.18), mat);
+      layer.position.y = -0.3 + i * 0.3;
+      g.add(layer);
+    }
   } else if (kind === 'certs') {
     const medal = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.12, 32), mat);
     medal.rotation.x = Math.PI / 2;

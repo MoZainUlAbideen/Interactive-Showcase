@@ -14,6 +14,7 @@ import { buildPodiums, updatePodiums, REACH } from './podiums.js';
 import { Physics, SPAWN } from './physics.js';
 import { FX } from './fx.js';
 import { UI } from './ui.js';
+import { ArenaAudio } from './audio.js';
 
 const DEBUG = new URLSearchParams(location.search).has('debug');
 
@@ -21,7 +22,6 @@ const DEBUG = new URLSearchParams(location.search).has('debug');
 document.getElementById('splash-name').textContent = SITE.name;
 document.getElementById('splash-role').textContent = SITE.role;
 document.getElementById('splash-intro').textContent = SITE.splashIntro;
-document.getElementById('hud-name').textContent = SITE.name;
 
 await document.fonts.load('italic 700 64px "Chakra Petch"').catch(() => {});
 
@@ -64,19 +64,27 @@ scene.add(ball, marker);
 const pods = buildPodiums(scene, PODIUMS);
 const fx = new FX(scene);
 const ui = new UI();
+const audio = new ArenaAudio();
+const muteBtn = document.getElementById('mute');
+const showMute = () => { muteBtn.querySelector('span').textContent = audio.muted ? 'Sound off' : 'Sound on'; muteBtn.setAttribute('aria-pressed', String(audio.muted)); };
+showMute();
+muteBtn.addEventListener('click', () => { audio.toggleMute(); showMute(); canvas.focus(); });
 
-const score = { blue: 0, orange: 0 };
+let goals = 0;
 let shake = 0;
 const physics = new Physics(pods, {
   onGoal(goalSide, pos) {
-    // ball in the orange goal = blue scores
-    if (goalSide === 'orange') score.blue++; else score.orange++;
-    ui.setScore(score.blue, score.orange);
+    goals++;
+    ui.setScore(goals);
     ui.goal(goalSide);
     fx.goal(pos, goalSide === 'orange' ? TEAM.orange : TEAM.blue);
+    audio.goal();
     shake = 0.8;
   },
-  onHit(kind, strength) { if (kind === 'car') shake = Math.max(shake, Math.min(0.25, strength / 120)); },
+  onHit(kind, strength) {
+    if (kind === 'car') shake = Math.max(shake, Math.min(0.25, strength / 120));
+    if (strength > 4) audio.hit(kind === 'car' ? strength : strength * 0.5);
+  },
 });
 
 // ── input ──
@@ -93,7 +101,8 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyE' && nearPod) { keys.clear(); ui.open(nearPod.data); }
   if (e.code === 'KeyC') { ballCam = !ballCam; ui.setBallCam(ballCam); }
   if (e.code === 'KeyR') { physics.resetCar(); physics.resetBall(); }
-  if (e.code === 'KeyH') document.getElementById('help').classList.toggle('is-hidden');
+  if (e.code === 'KeyM') { audio.toggleMute(); showMute(); }
+  if (e.code === "KeyH") document.getElementById('help').classList.toggle('is-hidden');
 });
 addEventListener('keyup', (e) => keys.delete(e.code));
 addEventListener('blur', () => keys.clear());
@@ -116,6 +125,7 @@ startBtn.disabled = false;
 startBtn.textContent = 'Kick off';
 startBtn.addEventListener('click', () => {
   state = 'play';
+  audio.start();
   document.getElementById('splash').classList.add('is-leaving');
   setTimeout(() => (document.getElementById('splash').hidden = true), 500);
   document.getElementById('hud').hidden = false;
@@ -197,6 +207,8 @@ function frame() {
   }
   for (const r of car.rollers) r.rotation.y += c.speed * dt * 0.6;
   car.flames.visible = c.boosting;
+  audio.setBoost(c.boosting && state === 'play');
+  if (state === 'play') audio.engine(c.speed, input.throttle || input.boost, c.boosting, c.onGround);
   if (c.boosting) {
     car.flames.scale.set(1, 1, 0.8 + Math.random() * 0.5);
     car.group.updateMatrixWorld();
@@ -228,4 +240,4 @@ function frame() {
 }
 requestAnimationFrame(frame);
 
-if (DEBUG) Object.assign(window, { physics, camera, scene, ui, pods, THREE, setState: (s) => (state = s), keys });
+if (DEBUG) Object.assign(window, { physics, camera, scene, ui, pods, audio, THREE, setState: (s) => (state = s), keys });

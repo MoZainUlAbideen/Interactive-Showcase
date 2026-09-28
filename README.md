@@ -1,16 +1,8 @@
-<<<<<<< HEAD
-# Zayn's arena portfolio
+# Zain's arena portfolio
 
 A small 3D football arena in the browser. You drive **Beyond** (a replica of my purple
 Mini 4WD), knock the ball into the goals, and drive up to the glowing podiums.
 Press **E** beside a podium to open it.
-=======
-# My Interactive Portfolio
-## Link: https://interactive-showcase-amber.vercel.app/
-A small top-down game on a plain `<canvas>`: walk through the forest, stand next to a
-glowing podium, press **E** (or tap **Talk** on a phone) and a popup opens.
-No build step, no npm, no libraries. It is just static files.
->>>>>>> f72f3b1fab07db8ed51b7a39b7d6621f9754c333
 
 Plain static files: Three.js loads from a CDN, so there's no npm and no build step.
 
@@ -23,6 +15,7 @@ Plain static files: Three.js loads from a CDN, so there's no npm and no build st
 | E | open the podium you're next to |
 | C | ball cam on/off |
 | R | reset car + ball |
+| M | sound on/off |
 | H | hide the controls box |
 | Esc | close a popup |
 
@@ -54,6 +47,7 @@ Add `?debug` to the URL to expose `physics`, `camera` and `scene` in the browser
     js/physics.js     car + ball physics, goals
     js/fx.js          boost trail + goal explosion
     js/ui.js          HUD and popups
+    js/audio.js       arena ambience, engine, goal roar + horn, hit sounds (Web Audio, no files)
 
 ## Deploy
 Push to GitHub and import the repo on Vercel or Netlify. Framework preset "Other",

@@ -41,7 +41,7 @@ export class UI {
     if (!pod) { this.prompt.hidden = true; this.promptPod = null; return; }
     if (this.promptPod === pod.id && !this.prompt.hidden) return;
     this.promptPod = pod.id;
-    this.promptLabel.textContent = pod.panel.title;
+    this.promptLabel.textContent = pod.label;
     this.prompt.style.setProperty('--accent', pod.color);
     this.prompt.hidden = false;
   }
@@ -54,9 +54,12 @@ export class UI {
     this.boostArc.style.strokeDashoffset = String(283 * (1 - v / 100));
   }
 
-  setScore(blue, orange) {
-    $('score-blue').textContent = blue;
-    $('score-orange').textContent = orange;
+  setScore(goals) {
+    const n = $('score-goals');
+    n.textContent = goals;
+    n.classList.remove('is-bump');
+    void n.offsetWidth;
+    n.classList.add('is-bump');
   }
 
   setBallCam(on) { $('ballcam').classList.toggle('is-on', on); }
@@ -80,27 +83,56 @@ export class UI {
     title.replaceChildren(p.href ? link(p.href, p.title, 'title-link') : p.title);
     if (p.href) title.firstChild.append(el('span', { class: 'arrow', 'aria-hidden': 'true' }, ' ↗'));
 
+    if (p.subtitle) body.append(el('p', { class: 'subtitle' }, p.subtitle));
     if (p.tagline) body.append(el('p', { class: 'tagline' }, p.tagline));
     for (const t of p.paragraphs || []) body.append(el('p', {}, t));
     if (p.comingSoon) body.append(el('div', { class: 'soon' }, el('span', { class: 'soon__dot' }), 'Coming soon'));
     if (p.facts) {
       body.append(el('dl', { class: 'facts' }, p.facts.map(([k, v]) => el('div', {}, el('dt', {}, k), el('dd', {}, v)))));
     }
-    if (p.bullets) body.append(el('ul', { class: 'bullets' }, p.bullets.map((b) => el('li', {}, b))));
-    if (p.tech) body.append(el('ul', { class: 'chips', 'aria-label': 'Built with' }, p.tech.map((t) => el('li', {}, t))));
+    if (p.experience) {
+      body.append(el('ol', { class: 'timeline' }, p.experience.map((x) => el('li', {},
+        el('div', { class: 'timeline__head' }, el('strong', {}, x.role), el('span', {}, x.when)),
+        el('p', { class: 'timeline__org' }, x.org),
+        el('ul', { class: 'bullets' }, x.points.map((b) => el('li', {}, b))),
+      ))));
+    }
+    if (p.skills) {
+      body.append(el('div', { class: 'skills' }, p.skills.map(([group, list]) => el('div', { class: 'skills__row' },
+        el('p', { class: 'skills__group' }, group),
+        el('ul', { class: 'chips' }, list.map((t) => el('li', {}, t))),
+      ))));
+    }
     if (p.items) {
-      body.append(el('ul', { class: 'certs' }, p.items.map((c) => el('li', { class: 'cert' },
+      body.append(el('ol', { class: 'projects' }, p.items.map((it, i) => el('li', { class: 'project' },
+        el('span', { class: 'project__num', 'aria-hidden': 'true' }, String(i + 1).padStart(2, '0')),
+        el('div', { class: 'project__main' },
+          el('h3', { class: 'project__title' }, link(it.href, it.title, 'title-link'), el('span', { class: 'arrow', 'aria-hidden': 'true' }, ' ↗')),
+          el('p', { class: 'tagline' }, it.tagline),
+          el('ul', { class: 'bullets' }, it.points.map((b) => el('li', {}, b))),
+          el('div', { class: 'project__foot' },
+            el('ul', { class: 'chips' }, it.tech.map((t) => el('li', {}, t))),
+            el('div', { class: 'links links--small' }, it.links.map((l) => link(l.href, l.label, 'btn btn--small'))),
+          ),
+        ),
+      ))));
+    }
+    if (p.certs) {
+      body.append(el('ul', { class: 'certs' }, p.certs.map((c) => el('li', { class: 'cert' },
         el('div', { class: 'cert__medal', 'aria-hidden': 'true' }),
         el('div', {},
           link(c.href, c.title, 'cert__title'),
           el('p', { class: 'cert__meta' }, [c.issuer, c.date].filter(Boolean).join(' · ')),
         ),
+        el('span', { class: 'cert__go', 'aria-hidden': 'true' }, '↗'),
       ))));
     }
     if (p.links?.length) {
       body.append(el('div', { class: 'links' }, p.links.map((l) => link(l.href, l.label, 'btn'))));
     }
 
+    this.card.classList.toggle('panel__card--wide', !!(p.items || p.experience || p.skills));
+    this.card.scrollTop = 0;
     this.panel.hidden = false;
     this.panelOpen = true;
     this.prompt.hidden = true;
