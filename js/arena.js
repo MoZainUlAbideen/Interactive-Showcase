@@ -89,10 +89,10 @@ function pitchTextures() {
   // football markings, bright white-cyan, on both layers
   for (const ctx of [base, glow]) {
     ctx.save();
-    ctx.strokeStyle = ctx === glow ? 'rgba(235,248,255,1)' : 'rgba(245,250,255,1)';
+    ctx.strokeStyle = ctx === glow ? 'rgba(200,235,255,.95)' : 'rgba(220,240,255,.9)';
     ctx.fillStyle = ctx.strokeStyle;
-    ctx.lineWidth = 0.5 * S; // bold, so the pitch markings read over the grid
-    if (ctx === glow) { ctx.shadowColor = '#bfeaff'; ctx.shadowBlur = 16; }
+    ctx.lineWidth = 0.32 * S;
+    if (ctx === glow) { ctx.shadowColor = '#7fd7ff'; ctx.shadowBlur = 8; }
     const rect = (x0, z0, x1, z1) => { const [a, b] = P(x0, z0); const [c, d] = P(x1, z1); ctx.strokeRect(a, b, c - a, d - b); };
     rect(-halfX + 0.5, -halfZ + 0.5, halfX - 0.5, halfZ - 0.5);
     ctx.beginPath(); ctx.moveTo(...P(0, -halfZ)); ctx.lineTo(...P(0, halfZ)); ctx.stroke();
