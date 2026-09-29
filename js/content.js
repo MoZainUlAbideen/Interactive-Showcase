@@ -30,9 +30,9 @@ export const PODIUMS = [
   {
     id: 'about', kind: 'about', label: 'WHO AM I', x: 0, z: 27, color: '#2de2ff',
     panel: {
-      kicker: 'Player profile',
-      title: 'Muhammad Zain-ul-Abideen',
-      subtitle: 'AI Full Stack Engineer · Islamabad, Pakistan',
+      kicker: "Zain's HQ",
+      title: 'Who am I',
+      subtitle: 'Muhammad Zain-ul-Abideen · AI Full Stack Engineer · Islamabad, Pakistan',
       paragraphs: [
         'I ship production LLM applications: retrieval-augmented generation, multi-agent pipelines and eval harnesses on Python/FastAPI backends with Next.js frontends, backed by automated tests, CI/CD and observability.',
         'Drive to the EXPERIENCE and STACK podiums for where I have worked and what I build with.',
@@ -40,9 +40,11 @@ export const PODIUMS = [
       facts: [
         ['Education', 'B.E. Electrical Engineering, NUST · 2022 – 2026'],
       ],
-      links: [
+      // Shown under a "Contact" heading. Resume opens in a new tab.
+      contact: [
         { label: 'LinkedIn', href: 'https://www.linkedin.com/in/muhammad-zain-ul-abideen-nust/' },
         { label: 'GitHub', href: GH },
+        { label: 'Resume', href: 'resume/Muhammad-Zain-ul-Abideen-Resume.pdf' },
         { label: 'Email', href: 'mailto:mu.zainulabideen@gmail.com' },
       ],
     },

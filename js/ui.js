@@ -14,7 +14,7 @@ function el(tag, attrs = {}, ...kids) {
   return e;
 }
 
-const isExternal = (href) => /^https?:/.test(href);
+const isExternal = (href) => /^https?:|\.pdf$/i.test(href); // opens in a new tab
 function link(href, text, cls) {
   const a = el('a', { href, class: cls || '' }, text);
   if (isExternal(href)) { a.target = '_blank'; a.rel = 'noopener'; }
@@ -126,6 +126,10 @@ export class UI {
         ),
         el('span', { class: 'cert__go', 'aria-hidden': 'true' }, '↗'),
       ))));
+    }
+    if (p.contact?.length) {
+      body.append(el('h3', { class: 'section' }, 'Contact'));
+      body.append(el('div', { class: 'links' }, p.contact.map((l) => link(l.href, l.label, 'btn'))));
     }
     if (p.links?.length) {
       body.append(el('div', { class: 'links' }, p.links.map((l) => link(l.href, l.label, 'btn'))));

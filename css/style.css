@@ -298,8 +298,8 @@ kbd {
 }
 .panel__x:hover { color: #fff; border-color: var(--accent); }
 .panel__kicker {
-  margin: 0 0 6px;
-  font: 700 12px/1 var(--font-display); letter-spacing: .22em; text-transform: uppercase;
+  margin: 0 0 8px;
+  font: 700 14px/1 var(--font-display); letter-spacing: .22em; text-transform: uppercase;
   color: var(--accent);
 }
 .panel__title { margin: 0 0 14px; font: italic 700 clamp(30px, 5vw, 42px)/1.05 var(--font-display); text-transform: uppercase; }

@@ -137,7 +137,7 @@ export class ArenaAudio {
       return { o, mult };
     });
     // little rumble so it never sounds like a pure tone
-    this.lfo(this.engGain.gain, 17, 0.005);
+    this.lfo(this.engGain.gain, 17, 0.0025);
   }
 
   // speed in units/s, throttle -1..1, onGround bool
@@ -149,7 +149,7 @@ export class ArenaAudio {
     const f = 42 + rev * 120 + (boosting ? 18 : 0);
     for (const { o, mult } of this.engOsc) o.frequency.setTargetAtTime(f * mult, t, 0.08);
     this.engFilter.frequency.setTargetAtTime(260 + rev * 1500 + (throttle ? 250 : 0), t, 0.1);
-    const vol = 0.018 + rev * 0.035 + (throttle ? 0.02 : 0) + (boosting ? 0.015 : 0);
+    const vol = 0.008 + rev * 0.018 + (throttle ? 0.01 : 0) + (boosting ? 0.008 : 0);
     this.engGain.gain.setTargetAtTime(vol, t, 0.12);
   }
 

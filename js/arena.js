@@ -51,48 +51,48 @@ function pitchTextures() {
 
   // base: deep navy with a soft vignette
   const bg = base.createLinearGradient(0, 0, W, 0);
-  bg.addColorStop(0, '#0a1233'); bg.addColorStop(0.5, '#0d0f2e'); bg.addColorStop(1, '#1a0f26');
+  bg.addColorStop(0, '#26356e'); bg.addColorStop(0.5, '#2b2c66'); bg.addColorStop(1, '#3a2a58');
   base.fillStyle = bg; base.fillRect(0, 0, W, Hh);
   glow.fillStyle = '#000'; glow.fillRect(0, 0, W, Hh);
 
   // tiles
-  const cols = 10, rows = 6;
+  const cols = 16, rows = 10;
   const tw = W / cols, th = Hh / rows;
-  const inset = 0.9 * S, rad = 1.8 * S;
+  const inset = 0.55 * S, rad = 1.1 * S;
   for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
     const x = i * tw + inset, y = j * th + inset, w = tw - inset * 2, h = th - inset * 2;
     const c = mix((i + 0.5) / cols);
     // tile body, slightly lighter than the gaps
     rrect(base, x, y, w, h, rad);
-    base.fillStyle = 'rgba(30,40,95,.35)'; base.fill();
+    base.fillStyle = 'rgba(150,170,255,.10)'; base.fill();
     // circuit dots
     base.fillStyle = 'rgba(120,150,255,.10)';
-    for (let dx = x + 12; dx < x + w - 8; dx += 16) for (let dy = y + 12; dy < y + h - 8; dy += 16) {
+    for (let dx = x + 10; dx < x + w - 6; dx += 14) for (let dy = y + 10; dy < y + h - 6; dy += 14) {
       if (Math.random() < 0.5) base.fillRect(dx, dy, 3, 3);
     }
     // a few short "traces"
     base.strokeStyle = 'rgba(120,150,255,.12)'; base.lineWidth = 3;
-    for (let k = 0; k < 3; k++) {
+    for (let k = 0; k < 1; k++) {
       const sx = x + 20 + Math.random() * (w - 40), sy = y + 20 + Math.random() * (h - 40);
-      base.beginPath(); base.moveTo(sx, sy); base.lineTo(sx + (Math.random() - 0.5) * 120, sy); base.lineTo(sx + (Math.random() - 0.5) * 120, sy + (Math.random() - 0.5) * 80); base.stroke();
+      base.beginPath(); base.moveTo(sx, sy); base.lineTo(sx + (Math.random() - 0.5) * 60, sy); base.lineTo(sx + (Math.random() - 0.5) * 60, sy + (Math.random() - 0.5) * 40); base.stroke();
     }
     // glowing outline
     rrect(glow, x, y, w, h, rad);
-    glow.shadowColor = rgba(c, 1); glow.shadowBlur = 10;
-    glow.strokeStyle = rgba(c, 0.9); glow.lineWidth = 0.22 * S;
+    glow.shadowColor = rgba(c, 0.8); glow.shadowBlur = 6;
+    glow.strokeStyle = rgba(c, 0.5); glow.lineWidth = 0.14 * S;
     glow.stroke();
     glow.shadowBlur = 0;
     rrect(base, x, y, w, h, rad);
-    base.strokeStyle = rgba(c, 0.55); base.lineWidth = 0.22 * S; base.stroke();
+    base.strokeStyle = rgba(c, 0.45); base.lineWidth = 0.14 * S; base.stroke();
   }
 
   // football markings, bright white-cyan, on both layers
   for (const ctx of [base, glow]) {
     ctx.save();
-    ctx.strokeStyle = ctx === glow ? 'rgba(200,235,255,.95)' : 'rgba(220,240,255,.9)';
+    ctx.strokeStyle = ctx === glow ? 'rgba(235,248,255,1)' : 'rgba(245,250,255,1)';
     ctx.fillStyle = ctx.strokeStyle;
-    ctx.lineWidth = 0.32 * S;
-    if (ctx === glow) { ctx.shadowColor = '#7fd7ff'; ctx.shadowBlur = 8; }
+    ctx.lineWidth = 0.5 * S; // bold, so the pitch markings read over the grid
+    if (ctx === glow) { ctx.shadowColor = '#bfeaff'; ctx.shadowBlur = 16; }
     const rect = (x0, z0, x1, z1) => { const [a, b] = P(x0, z0); const [c, d] = P(x1, z1); ctx.strokeRect(a, b, c - a, d - b); };
     rect(-halfX + 0.5, -halfZ + 0.5, halfX - 0.5, halfZ - 0.5);
     ctx.beginPath(); ctx.moveTo(...P(0, -halfZ)); ctx.lineTo(...P(0, halfZ)); ctx.stroke();
@@ -237,7 +237,7 @@ export function buildArena(scene) {
   // Lambert (no specular) keeps the floor dark navy at low camera angles;
   // the glow comes entirely from the emissive tile/line layer.
   const pitchMat = new THREE.MeshLambertMaterial({
-    map, color: 0x8a96c4, emissiveMap: glow, emissive: 0xffffff, emissiveIntensity: 0.8,
+    map, color: 0xc4ccee, emissiveMap: glow, emissive: 0xffffff, emissiveIntensity: 0.85,
   });
   const pitch = new THREE.Mesh(new THREE.PlaneGeometry(halfX * 2, halfZ * 2), pitchMat);
   pitch.rotation.x = -Math.PI / 2;

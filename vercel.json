@@ -1,0 +1,11 @@
+{
+  "rewrites": [
+    { "source": "/resume", "destination": "/resume/Muhammad-Zain-ul-Abideen-Resume.pdf" }
+  ],
+  "headers": [
+    {
+      "source": "/resume/(.*)",
+      "headers": [{ "key": "Content-Disposition", "value": "inline; filename=\"Muhammad-Zain-ul-Abideen-Resume.pdf\"" }]
+    }
+  ]
+}
