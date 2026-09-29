@@ -117,6 +117,7 @@ export class UI {
         ),
       ))));
     }
+    if (p.life) body.append(this.renderLife(p.life));
     if (p.certs) {
       body.append(el('ul', { class: 'certs' }, p.certs.map((c) => el('li', { class: 'cert' },
         el('div', { class: 'cert__medal', 'aria-hidden': 'true' }),
@@ -135,13 +136,72 @@ export class UI {
       body.append(el('div', { class: 'links' }, p.links.map((l) => link(l.href, l.label, 'btn'))));
     }
 
-    this.card.classList.toggle('panel__card--wide', !!(p.items || p.experience || p.skills));
+    this.card.classList.toggle('panel__card--wide', !!(p.items || p.experience || p.skills || p.life));
     this.card.scrollTop = 0;
     this.panel.hidden = false;
     this.panelOpen = true;
     this.prompt.hidden = true;
     requestAnimationFrame(() => this.panel.classList.add('is-open'));
     this.card.focus();
+  }
+
+  // "Life Uncoded": community work + sports, with a hover/tap photo pop-up
+  renderLife(life) {
+    const frag = document.createDocumentFragment();
+    const logo = (src, alt) => el('img', { class: 'life__logo', src, alt, loading: 'lazy' });
+
+    if (life.community) {
+      frag.append(el('h3', { class: 'section' }, life.community.heading));
+      for (const it of life.community.items) {
+        frag.append(el('article', { class: 'life-card' },
+          logo(it.logo, it.logoAlt),
+          el('div', {},
+            el('h4', { class: 'life-card__title' }, link(it.href, it.role, 'title-link')),
+            el('p', { class: 'life-card__org' }, link(it.href, it.org, 'life-card__link')),
+            el('p', { class: 'life-card__meta' }, link(it.href, it.place, 'life-card__link')),
+            el('p', { class: 'life-card__text' }, it.text),
+          ),
+        ));
+      }
+    }
+
+    if (life.beyond) {
+      frag.append(el('h3', { class: 'section' }, life.beyond.heading));
+      if (life.beyond.title) frag.append(el('p', { class: 'life__big' }, life.beyond.title));
+      for (const it of life.beyond.items) {
+        const card = el('article', { class: 'life-card life-card--sport' },
+          logo(it.logo, it.logoAlt),
+          el('div', {},
+            el('p', { class: 'life-card__sport' }, it.sport),
+            el('h4', { class: 'life-card__title' }, it.name),
+            el('p', { class: 'life-card__text' }, it.text),
+          ),
+        );
+        if (it.player) {
+          const btn = el('button', { class: 'poc', type: 'button', 'aria-label': it.player.label, 'aria-expanded': 'false' },
+            el('span', { class: 'poc__icon', 'aria-hidden': 'true' },
+              // simple shirt outline
+              (() => {
+                const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                s.setAttribute('viewBox', '0 0 48 48');
+                s.innerHTML = '<path d="M17 6l-9 5-5 10 7 4 3-5v22h22V20l3 5 7-4-5-10-9-5c-1 3.5-3.6 5.5-7 5.5S18 9.5 17 6z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M21 22h6v14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>';
+                return s;
+              })(),
+            ),
+            el('span', { class: 'poc__label' }, it.player.label),
+            el('span', { class: 'poc__pop', role: 'tooltip' }, el('img', { src: it.player.img, alt: it.player.alt, loading: 'lazy' })),
+          );
+          // tap to toggle on touch screens; hover/focus handles desktop via CSS
+          btn.addEventListener('click', () => {
+            const open = btn.classList.toggle('is-open');
+            btn.setAttribute('aria-expanded', String(open));
+          });
+          card.querySelector('div').append(btn);
+        }
+        frag.append(card);
+      }
+    }
+    return frag;
   }
 
   close() {

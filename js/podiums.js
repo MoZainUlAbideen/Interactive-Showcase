@@ -73,7 +73,7 @@ function iconFor(kind, mat) {
   const g = new THREE.Group();
   if (kind === 'about') {
     g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.62, 0), mat));
-    const wire = new THREE.Mesh(new THREE.IcosahedronGeometry(0.85, 0), new THREE.MeshBasicMaterial({ color: mat.emissive, wireframe: true }));
+    const wire = new THREE.Mesh(new THREE.IcosahedronGeometry(0.85, 0), new THREE.MeshBasicMaterial({ color: mat.emissive.clone().multiplyScalar(0.6), wireframe: true }));
     g.add(wire);
   } else if (kind === 'interests') {
     g.add(new THREE.Mesh(new THREE.TorusKnotGeometry(0.42, 0.13, 90, 12), mat));
@@ -103,7 +103,7 @@ function iconFor(kind, mat) {
     g.add(star);
   } else {
     g.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.7, 0), mat));
-    const cage = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 1.1), new THREE.MeshBasicMaterial({ color: mat.emissive, wireframe: true }));
+    const cage = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 1.1), new THREE.MeshBasicMaterial({ color: mat.emissive.clone().multiplyScalar(0.6), wireframe: true }));
     g.add(cage);
   }
   return g;
@@ -147,13 +147,17 @@ export function buildPodiums(scene, list) {
     const beam = new THREE.Mesh(
       new THREE.CylinderGeometry(1.1, 1.1, 9, 24, 1, true),
       new THREE.MeshBasicMaterial({
-        color, alphaMap: beamAlpha, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending,
+        color, alphaMap: beamAlpha, transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending,
         depthWrite: false, side: THREE.DoubleSide,
       }),
     );
     beam.position.y = PODIUM_H + 4.5;
 
-    const icon = iconFor(data.kind, glowMat);
+    // the icon gets its own, softer material so it reads as a shape instead of a white blob
+    const iconMat = new THREE.MeshStandardMaterial({
+      color, emissive: color, emissiveIntensity: 0.45, roughness: 0.35, metalness: 0.4,
+    });
+    const icon = iconFor(data.kind, iconMat);
     icon.position.y = 3.3;
 
     const { tex, aspect } = labelTexture(data.label, data.color);
@@ -164,7 +168,7 @@ export function buildPodiums(scene, list) {
     label.userData.aspect = aspect;
 
     const light = new THREE.PointLight(color, 25, 12, 2);
-    light.position.y = 2.6;
+    light.position.y = 1.1; // low, so it lights the pad without washing out the icon
 
     let headline = null;
     if (data.headline) {
@@ -174,6 +178,12 @@ export function buildPodiums(scene, list) {
       headline.renderOrder = 11;
       g.add(headline);
     }
+
+    if (data.plate === false) {
+      label.visible = false;
+      if (headline) headline.position.y = 5.9;
+    }
+    if (headline) headline.userData.baseY = headline.position.y;
 
     g.add(base, column, cap, trim, ring, disc, beam, icon, label, light);
     scene.add(g);
@@ -192,13 +202,13 @@ export function updatePodiums(pods, t, dt, activeId) {
     p.icon.position.y = 3.3 + Math.sin(t * 1.8 + p.z) * 0.18;
     p.ring.material.opacity = 0.45 + 0.35 * pulse + 0.2 * p.near;
     p.ring.scale.setScalar(1 + 0.04 * pulse + 0.08 * p.near);
-    p.beam.material.opacity = 0.35 + 0.15 * pulse + 0.4 * p.near;
+    p.beam.material.opacity = 0.12 + 0.05 * pulse + 0.12 * p.near;
     p.glowMat.emissiveIntensity = 1.8 + 0.8 * pulse + 1.5 * p.near;
-    p.light.intensity = 18 + 10 * pulse + 30 * p.near;
+    p.light.intensity = 14 + 6 * pulse + 16 * p.near;
     const s = 1 + 0.12 * p.near;
     p.label.scale.set(7.2 * s, 1.8 * s, 1);
     if (p.headline) {
-      p.headline.position.y = 7.6 + Math.sin(t * 1.3) * 0.15;
+      p.headline.position.y = p.headline.userData.baseY + Math.sin(t * 1.3) * 0.15;
       p.headline.material.opacity = 0.85 + 0.15 * pulse;
     }
   }

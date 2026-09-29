@@ -6,7 +6,7 @@
 //
 //        top  (z = -32)
 //    ┌──────────────┬──────────────┐
-//    │ STACK      INTERESTS    CERTS │
+//    │ STACK    LIFE UNCODED   CERTS │
 //  B │                             │ O    x runs left (-50) → right (+50)
 //  L ▌goal         (o)        goal ▐ R    z runs top (-32) → bottom (+32)
 //  U │                             │ A
@@ -27,6 +27,7 @@ const GH = 'https://github.com/MoZainUlAbideen';
 // kind: 'about' | 'interests' | 'projects' | 'certs'  (changes the floating icon + popup layout)
 // color: the podium's glow colour
 // headline: optional big glowing sign floating above the podium's label
+// plate: false hides the small label plate (the headline is used instead)
 export const PODIUMS = [
   {
     id: 'about', kind: 'about', label: 'WHO AM I', headline: "ZAIN'S HQ", x: 0, z: 27, color: '#2de2ff',
@@ -51,15 +52,44 @@ export const PODIUMS = [
     },
   },
   {
-    id: 'interests', kind: 'interests', label: 'MY INTERESTS', x: 0, z: -27, color: '#ff4fd8',
+    id: 'interests', kind: 'interests', label: 'LIFE UNCODED', headline: 'LIFE UNCODED', plate: false,
+    x: 0, z: -27, color: '#ff4fd8',
     panel: {
       kicker: 'Off the pitch',
-      title: 'My interests',
-      comingSoon: true,
-      paragraphs: ['This podium is warming up. Check back soon.'],
+      title: 'Life Uncoded',
+      life: {
+        community: {
+          heading: 'Community Work',
+          items: [
+            {
+              logo: 'assets/life/wwf.png',
+              logoAlt: 'WWF logo',
+              role: 'Collaborations Lead',
+              org: 'WWF – Pakistan',
+              place: 'Peshawar, Khyber Pakhtunkhwa, Pakistan · Remote',
+              href: 'https://www.linkedin.com/in/muhammad-zain-ul-abideen-nust/details/experience/',
+              text: 'Led the Collaborations team under WWF in support of education initiatives, contributing to awareness and learning activities focused on environmental responsibility and sustainable living. Engaged with communities and helped promote educational efforts that encouraged a greater understanding of conservation and the importance of protecting our environment.',
+            },
+          ],
+        },
+        beyond: {
+          heading: 'Beyond',
+          title: 'Competitive Sports Fanatic',
+          items: [
+            {
+              sport: 'Football',
+              logo: 'assets/life/fcb.png',
+              logoAlt: 'FC Barcelona crest',
+              name: 'FC Barcelona',
+              text: "The first complete football match I watched was the 2015 Champions League final, and I've never looked back since. It's a hard love affair with this team: they almost bottle the Champions League every year, but they dismantle Real Madrid three times a year. Hahahah.",
+              // hover / tap the badge to pop up the player's photo
+              player: { label: 'Player of choice', img: 'assets/life/player.jpg', alt: 'Pedri in the FC Barcelona number 8 shirt' },
+            },
+          ],
+        },
+      },
     },
   },
-
   {
     id: 'experience', kind: 'experience', label: 'EXPERIENCE', x: -38, z: 24, color: '#4ade80',
     panel: {
