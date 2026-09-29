@@ -13,6 +13,8 @@ export const FIELD = {
   postR: 0.35,
   ballR: 2,
   cornerGap: 4,   // glass is left open this far from each corner; the corner podiums sit in the gap
+  // podiums that sit ON a touchline, half in / half out (side: +1 = bottom, -1 = top)
+  touchPods: [{ x: -19, side: 1 }],
 };
 
 // Dugout ("My Academy") behind the top touchline
@@ -262,13 +264,48 @@ export function buildArena(scene) {
     return m;
   };
   const G = FIELD.cornerGap;
-  // long side walls, split so each half glows in its team colour; they stop short of the corners
+  // long side walls: stop short of the corners, open around touchline podiums,
+  // and each half glows in its team colour
   for (const s of [-1, 1]) {
-    box((halfX - G) * 2, wallH, 0.2, glass, 0, wallH / 2, s * (halfZ + 0.1));
-    for (const [side, mat] of [[-1, blueN], [1, orangeN]]) {
-      box(halfX - G, 0.18, 0.3, mat, side * (halfX - G) / 2, wallH, s * (halfZ + 0.1));
-      box(halfX - G, 0.12, 0.3, mat, side * (halfX - G) / 2, 0.08, s * (halfZ + 0.1));
+    const z = s * (halfZ + 0.1);
+    const gaps = FIELD.touchPods.filter((p) => p.side === s).map((p) => [p.x - G, p.x + G]).sort((a, b) => a[0] - b[0]);
+    const segs = [];
+    let from = -(halfX - G);
+    for (const [a, b] of gaps) { segs.push([from, a]); from = b; }
+    segs.push([from, halfX - G]);
+    for (const [a, b] of segs) {
+      box(b - a, wallH, 0.2, glass, (a + b) / 2, wallH / 2, z);
+      for (const [lo, hi, mat] of [[a, Math.min(b, 0), blueN], [Math.max(a, 0), b, orangeN]]) {
+        if (hi - lo < 0.05) continue;
+        box(hi - lo, 0.18, 0.3, mat, (lo + hi) / 2, wallH, z);
+        box(hi - lo, 0.12, 0.3, mat, (lo + hi) / 2, 0.08, z);
+      }
     }
+  }
+  // half-circle alcoves behind touchline podiums
+  for (const p of FIELD.touchPods) {
+    const mat = p.x < 0 ? blueN : orangeN;
+    const a = new THREE.Group();
+    a.position.set(p.x, 0, p.side * halfZ);
+    a.scale.set(1, 1, p.side); // built for the bottom touchline (+z is outside), mirrored for the top
+    const arc = (h, y, mtl) => {
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(G, G, h, 40, 1, true, -Math.PI / 2, Math.PI), mtl);
+      m.position.y = y;
+      a.add(m);
+    };
+    arc(wallH, wallH / 2, glass);
+    arc(0.18, wallH, new THREE.MeshBasicMaterial({ color: mat.color, side: THREE.DoubleSide }));
+    arc(0.12, 0.08, new THREE.MeshBasicMaterial({ color: mat.color, side: THREE.DoubleSide }));
+    for (const px of [-G, G]) {
+      const pl = new THREE.Mesh(new THREE.BoxGeometry(0.5, wallH + 0.4, 0.5), whiteN);
+      pl.position.set(px, (wallH + 0.4) / 2, 0);
+      a.add(pl);
+    }
+    const f = new THREE.Mesh(new THREE.CircleGeometry(G, 32, Math.PI, Math.PI), new THREE.MeshStandardMaterial({ color: 0x0c1230, roughness: 0.8, side: THREE.DoubleSide }));
+    f.rotation.x = -Math.PI / 2;
+    f.position.y = 0.01;
+    a.add(f);
+    scene.add(a);
   }
   // end walls either side of the goal mouth, and above it
   for (const s of [-1, 1]) {
@@ -305,7 +342,7 @@ export function buildArena(scene) {
       a.add(p);
     }
     // floor of the alcove
-    const f = new THREE.Mesh(new THREE.CircleGeometry(G, 40), new THREE.MeshStandardMaterial({ color: 0x0c1230, roughness: 0.8 }));
+    const f = new THREE.Mesh(new THREE.CircleGeometry(G, 40), new THREE.MeshStandardMaterial({ color: 0x0c1230, roughness: 0.8, side: THREE.DoubleSide }));
     f.rotation.x = -Math.PI / 2;
     f.position.y = 0.01;
     a.add(f);
@@ -406,7 +443,8 @@ export function buildArena(scene) {
   };
   const longLen = (halfX - FIELD.cornerGap - 1.5) * 2;
   addStand(longLen, true, -1, halfZ + 1, [DUGOUT.x - DUGOUT.halfW - 1, DUGOUT.x + DUGOUT.halfW + 1], 2);
-  addStand(longLen, true, 1, halfZ + 1);
+  const tp = FIELD.touchPods.find((p) => p.side === 1);
+  addStand(longLen, true, 1, halfZ + 1, tp ? [tp.x - FIELD.cornerGap - 1.5, tp.x + FIELD.cornerGap + 1.5] : null, 2);
   addStand(halfZ * 2 - 4, false, -1, halfX + goalDepth + 2);
   addStand(halfZ * 2 - 4, false, 1, halfX + goalDepth + 2);
 

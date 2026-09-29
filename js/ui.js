@@ -88,7 +88,10 @@ export class UI {
     for (const t of p.paragraphs || []) body.append(el('p', {}, t));
     if (p.comingSoon) body.append(el('div', { class: 'soon' }, el('span', { class: 'soon__dot' }), 'Coming soon'));
     if (p.facts) {
-      body.append(el('dl', { class: 'facts' }, p.facts.map(([k, v]) => el('div', {}, el('dt', {}, k), el('dd', {}, v)))));
+      body.append(el('dl', { class: 'facts' }, p.facts.map(([k, v, logo]) => el('div', { class: logo ? 'has-logo' : '' },
+        el('dt', {}, k),
+        el('dd', {}, logo ? el('img', { class: 'facts__logo', src: logo, alt: '' }) : null, v),
+      ))));
     }
     if (p.experience) {
       body.append(el('ol', { class: 'timeline' }, p.experience.map((x) => el('li', {},

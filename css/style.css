@@ -93,6 +93,7 @@ kbd {
 .splash__intro mark {
   background: none; color: #ff4fa8; font-weight: 700;
 }
+.splash__intro strong { color: #fff; font-weight: 800; }
 
 .stats {
   list-style: none; margin: 0 0 12px; padding: 0;
@@ -542,3 +543,6 @@ kbd {
   .story--flip .story__img { order: 0; }
   .story__img { max-height: 180px; }
 }
+
+.facts .has-logo dd { display: flex; align-items: center; gap: 12px; }
+.facts__logo { width: 44px; height: 44px; object-fit: contain; flex: none; }

@@ -1,6 +1,5 @@
 // ─────────────────────────────────────────────────────────────
 //  Sound, generated live with Web Audio (no audio files needed):
-//   · arena ambience: low crowd murmur + a dark drone
 //   · car engine (pitch follows speed) and the boost whoosh
 //   · goal: crowd roar + goal horn
 //   · car/ball hits
@@ -24,7 +23,6 @@ export class ArenaAudio {
     const comp = ctx.createDynamicsCompressor();
     this.master.connect(comp).connect(ctx.destination);
     this.noise = this.makeNoise(4);
-    this.ambience();
     this.boostSetup();
     this.engineSetup();
   }
@@ -67,45 +65,6 @@ export class ArenaAudio {
     o.start();
   }
 
-  ambience() {
-    const ctx = this.ctx;
-    const bus = ctx.createGain();
-    bus.gain.value = 0;
-    bus.gain.linearRampToValueAtTime(0.055, ctx.currentTime + 3); // fade in; a quiet bed so the portfolio stays the focus
-    bus.connect(this.master);
-
-    // crowd murmur: band-passed noise that swells slowly
-    const murmur = this.noiseSource();
-    const bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass'; bp.frequency.value = 520; bp.Q.value = 0.7;
-    const mg = ctx.createGain(); mg.gain.value = 0.28;
-    murmur.connect(bp).connect(mg).connect(bus);
-    this.lfo(mg.gain, 0.07, 0.1);
-    this.lfo(bp.frequency, 0.05, 120);
-    murmur.start();
-
-    // stadium rumble
-    const rumble = this.noiseSource();
-    const lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass'; lp.frequency.value = 140;
-    const rg = ctx.createGain(); rg.gain.value = 0.55;
-    rumble.connect(lp).connect(rg).connect(bus);
-    rumble.start();
-
-    // dark drone (two detuned lows + a quiet fifth)
-    const dl = ctx.createBiquadFilter();
-    dl.type = 'lowpass'; dl.frequency.value = 320;
-    const dg = ctx.createGain(); dg.gain.value = 0.05;
-    dl.connect(dg).connect(bus);
-    for (const [f, type] of [[55, 'sawtooth'], [55.6, 'sawtooth'], [82.4, 'triangle']]) {
-      const o = ctx.createOscillator();
-      o.type = type; o.frequency.value = f;
-      o.connect(dl); o.start();
-    }
-    this.lfo(dl.frequency, 0.03, 110);
-    this.lfo(dg.gain, 0.045, 0.02);
-  }
-
   boostSetup() {
     const ctx = this.ctx;
     const src = this.noiseSource();
@@ -117,27 +76,35 @@ export class ArenaAudio {
     src.start();
   }
 
-  // Engine: two detuned saws + a sub square through a lowpass.
-  // Pitch and brightness follow speed; volume rises with throttle.
+  // Engine: a light electric-motor whine (like a Mini 4WD motor), not a big-car growl.
+  // Two soft triangle tones an octave apart; pitch rises with speed, volume stays gentle.
   engineSetup() {
     const ctx = this.ctx;
     this.engFilter = ctx.createBiquadFilter();
     this.engFilter.type = 'lowpass';
-    this.engFilter.frequency.value = 380;
-    this.engFilter.Q.value = 3;
+    this.engFilter.frequency.value = 1400;
+    this.engFilter.Q.value = 0.5;
     this.engGain = ctx.createGain();
     this.engGain.gain.value = 0;
     this.engFilter.connect(this.engGain).connect(this.master);
-    this.engOsc = [['sawtooth', 1, 0], ['sawtooth', 1.01, 0], ['square', 0.5, 0]].map(([type, mult]) => {
+    this.engOsc = [['triangle', 1, 1], ['sine', 2, 0.35]].map(([type, mult, level]) => {
       const o = ctx.createOscillator();
       o.type = type;
-      o.frequency.value = 42 * mult;
-      o.connect(this.engFilter);
+      o.frequency.value = 140 * mult;
+      const g = ctx.createGain();
+      g.gain.value = level;
+      o.connect(g).connect(this.engFilter);
       o.start();
       return { o, mult };
     });
-    // little rumble so it never sounds like a pure tone
-    this.lfo(this.engGain.gain, 17, 0.0025);
+    // a faint shimmer so it sounds like a spinning motor, not a flat tone
+    const shimmer = ctx.createOscillator();
+    const sg = ctx.createGain();
+    shimmer.frequency.value = 23;
+    sg.gain.value = 6;
+    shimmer.connect(sg);
+    for (const { o } of this.engOsc) sg.connect(o.frequency);
+    shimmer.start();
   }
 
   // speed in units/s, throttle -1..1, onGround bool
@@ -145,12 +112,12 @@ export class ArenaAudio {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
     const s = Math.min(1, Math.abs(speed) / 40);
-    const rev = onGround ? s : Math.max(s, 0.55); // revs up in the air
-    const f = 42 + rev * 120 + (boosting ? 18 : 0);
-    for (const { o, mult } of this.engOsc) o.frequency.setTargetAtTime(f * mult, t, 0.08);
-    this.engFilter.frequency.setTargetAtTime(260 + rev * 1500 + (throttle ? 250 : 0), t, 0.1);
-    const vol = 0.008 + rev * 0.018 + (throttle ? 0.01 : 0) + (boosting ? 0.008 : 0);
-    this.engGain.gain.setTargetAtTime(vol, t, 0.12);
+    const rev = onGround ? s : Math.max(s, 0.5);
+    const f = 140 + rev * 260 + (boosting ? 40 : 0);
+    for (const { o, mult } of this.engOsc) o.frequency.setTargetAtTime(f * mult, t, 0.12);
+    this.engFilter.frequency.setTargetAtTime(1200 + rev * 1400, t, 0.15);
+    const vol = (Math.abs(speed) > 0.5 || throttle ? 0.006 : 0) + rev * 0.012 + (boosting ? 0.004 : 0);
+    this.engGain.gain.setTargetAtTime(vol, t, 0.15);
   }
 
   engineOff() {

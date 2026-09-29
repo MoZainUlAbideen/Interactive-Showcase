@@ -131,7 +131,7 @@ const IDLE = { throttle: 0, steer: 0, boost: false, jump: false };
 let state = 'splash';
 const startBtn = document.getElementById('start');
 startBtn.disabled = false;
-startBtn.querySelector('span').textContent = 'Kick off';
+startBtn.querySelector('span').textContent = 'Explore';
 startBtn.addEventListener('click', () => {
   state = 'play';
   audio.start();
@@ -217,8 +217,10 @@ function frame() {
   }
   for (const r of car.rollers) r.rotation.y += c.speed * dt * 0.6;
   car.flames.visible = c.boosting;
-  audio.setBoost(c.boosting && state === 'play');
-  if (state === 'play') audio.engine(c.speed, input.throttle || input.boost, c.boosting, c.onGround);
+  audio.setBoost(c.boosting && state === 'play' && !busy);
+  // car sound only while actually driving; silent behind popups and in the academy
+  if (state === 'play' && !busy) audio.engine(c.speed, input.throttle || input.boost, c.boosting, c.onGround);
+  else audio.engineOff();
   if (c.boosting) {
     car.flames.scale.set(1, 1, 0.8 + Math.random() * 0.5);
     car.group.updateMatrixWorld();

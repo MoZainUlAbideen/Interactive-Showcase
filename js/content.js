@@ -40,7 +40,7 @@ export const PODIUMS = [
         'Drive to the EXPERIENCE and STACK podiums for where I have worked and what I build with.',
       ],
       facts: [
-        ['Education', 'B.E. Electrical Engineering, NUST · 2022 – 2026'],
+        ['Education', 'Bachelors in Electrical Engineering, NUST CEME · 2022 – 2026', 'assets/life/nust-ceme.png'],
       ],
       // Shown under a "Contact" heading. Resume opens in a new tab.
       contact: [
@@ -52,8 +52,8 @@ export const PODIUMS = [
     },
   },
   {
-    // between ZAIN'S HQ (0, 27) and EXPERIENCE (-38, 24)
-    id: 'vision', kind: 'vision', label: 'VISION', x: -19, z: 26, color: '#60a5fa',
+    // on the bottom touchline, half in / half out (the glass opens here, see FIELD.touchPods in arena.js)
+    id: 'vision', kind: 'vision', label: 'VISION', x: -19, z: 32, color: '#60a5fa',
     panel: {
       kicker: 'Behind the build',
       title: 'Vision',
@@ -151,7 +151,7 @@ export const PODIUMS = [
         {
           role: 'AI Engineer Intern',
           org: 'Software Productivity Strategists (SPS), NSTP',
-          when: 'Jun – Aug 2025',
+          when: 'Jun – Aug 2024',
           points: [
             'Built backend features for two flagship products: Business Management System and Cognitive Service Management.',
             'Deployed AI solutions on Microsoft Azure and improved analytics for a security management system.',
