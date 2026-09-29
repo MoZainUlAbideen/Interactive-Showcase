@@ -49,6 +49,19 @@ Add `?debug` to the URL to expose `physics`, `camera` and `scene` in the browser
     js/fx.js          boost trail + goal explosion
     js/ui.js          HUD and popups
     js/audio.js       arena ambience, engine, goal roar + horn, hit sounds (Web Audio, no files)
+    js/dugout.js      the dugout + floating My Academy emblem
+    js/academy/       My Academy: path chooser + four games
+      hallucination.js  Hallucination Hunt (evaluation)
+      retrieval.js      Retrieval Relay (RAG)
+      pitcrew.js        Agent Pit Crew (agents)
+      golf.js           Learning-Rate Golf (gradient descent)
+    css/academy.css   academy styles
+    tests/            logic tests for the academy games
+
+## Tests
+The academy game logic has 21 tests (pipelines, retrieval verdicts, every golf hole):
+
+    node tests/academy.test.mjs
 
 ## Deploy
 Push to GitHub and import the repo on Vercel or Netlify. Framework preset "Other",

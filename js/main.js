@@ -15,6 +15,8 @@ import { Physics, SPAWN } from './physics.js';
 import { FX } from './fx.js';
 import { UI } from './ui.js';
 import { ArenaAudio } from './audio.js';
+import { buildDugout } from './dugout.js';
+import { Academy } from './academy/academy.js';
 
 const DEBUG = new URLSearchParams(location.search).has('debug');
 
@@ -62,6 +64,10 @@ scene.add(car.group);
 const { ball, marker } = buildBall();
 scene.add(ball, marker);
 const pods = buildPodiums(scene, PODIUMS);
+const dugout = buildDugout(scene);
+const academy = new Academy();
+// everything the car can press E at: the podiums plus the dugout's technical area
+const spots = [...pods, dugout.spot];
 const fx = new FX(scene);
 const ui = new UI();
 const audio = new ArenaAudio();
@@ -93,12 +99,15 @@ let ballCam = false;
 const GAME_KEYS = ['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
 addEventListener('keydown', (e) => {
   if (state !== 'play') return;
+  if (academy.isOpen) { if (e.code === 'Escape') academy.back(); return; }
+  if (ui.panelOpen) { if (e.code === 'Escape') ui.close(); return; }
   if (GAME_KEYS.includes(e.code)) e.preventDefault();
-  if (e.code === 'Escape') { ui.close(); return; }
-  if (ui.panelOpen) return;
   keys.add(e.code);
   if (e.repeat) return;
-  if (e.code === 'KeyE' && nearPod) { keys.clear(); ui.open(nearPod.data); }
+  if (e.code === 'KeyE' && nearPod) {
+    keys.clear();
+    if (nearPod.data.id === 'academy') { ui.setPrompt(null); academy.open(); } else ui.open(nearPod.data);
+  }
   if (e.code === 'KeyC') { ballCam = !ballCam; ui.setBallCam(ballCam); }
   if (e.code === 'KeyR') { physics.resetCar(); physics.resetBall(); }
   if (e.code === 'KeyM') { audio.toggleMute(); showMute(); }
@@ -193,7 +202,8 @@ const clock = new THREE.Clock();
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
-  const input = state === 'play' && !ui.panelOpen ? readInput() : IDLE;
+  const busy = ui.panelOpen || academy.isOpen;
+  const input = state === 'play' && !busy ? readInput() : IDLE;
   physics.step(dt, input);
 
   // car visuals
@@ -225,19 +235,21 @@ function frame() {
   // nearest podium in reach
   nearPod = null;
   let best = REACH;
-  for (const p of pods) {
+  for (const p of spots) {
     const d = Math.hypot(c.pos.x - p.x, c.pos.z - p.z);
     if (d < best) { best = d; nearPod = p; }
   }
-  if (state === 'play' && !ui.panelOpen) ui.setPrompt(nearPod?.data);
+  if (state === 'play' && !busy) ui.setPrompt(nearPod?.data);
   updatePodiums(pods, t, dt, nearPod?.data.id);
+  dugout.update(t, nearPod?.data.id === 'academy' ? 1 : 0);
   ui.setBoost(c.boost);
 
   fx.update(dt);
   if (!window.freezeCam) updateCamera(dt, t);
-  composer.render();
+  // the academy covers the whole screen, so skip drawing the arena behind it (saves the GPU)
+  if (!academy.isOpen) composer.render();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 
-if (DEBUG) Object.assign(window, { physics, camera, scene, ui, pods, audio, THREE, setState: (s) => (state = s), keys });
+if (DEBUG) Object.assign(window, { physics, camera, scene, ui, pods, audio, academy, dugout, THREE, setState: (s) => (state = s), keys });

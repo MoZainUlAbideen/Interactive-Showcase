@@ -134,7 +134,7 @@ export const PODIUMS = [
     },
   },
   {
-    id: 'experience', kind: 'experience', label: 'EXPERIENCE', x: -38, z: 24, color: '#4ade80',
+    id: 'experience', kind: 'experience', label: 'EXPERIENCE', x: -50, z: 32, color: '#4ade80',
     panel: {
       kicker: 'Career so far',
       title: 'Experience',
@@ -161,7 +161,7 @@ export const PODIUMS = [
     },
   },
   {
-    id: 'stack', kind: 'stack', label: 'STACK', x: -38, z: -24, color: '#a78bfa',
+    id: 'stack', kind: 'stack', label: 'STACK', x: -50, z: -32, color: '#a78bfa',
     panel: {
       kicker: 'What I build with',
       title: 'Stack',
@@ -176,7 +176,7 @@ export const PODIUMS = [
 
   // ── Projects: bottom-right corner ──
   {
-    id: 'projects', kind: 'projects', label: 'PROJECTS', x: 38, z: 24, color: '#ff8a1f',
+    id: 'projects', kind: 'projects', label: 'PROJECTS', x: 50, z: 32, color: '#ff8a1f',
     panel: {
       kicker: 'Highlight reel',
       title: 'Projects',
@@ -245,7 +245,7 @@ export const PODIUMS = [
 
   // ── Certifications: top-right corner ──
   {
-    id: 'certs', kind: 'certs', label: 'CERTIFICATIONS', x: 38, z: -24, color: '#ffd23f',
+    id: 'certs', kind: 'certs', label: 'CERTIFICATIONS', x: 50, z: -32, color: '#ffd23f',
     panel: {
       kicker: 'Trophy cabinet',
       title: 'Certifications',

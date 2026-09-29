@@ -12,7 +12,11 @@ export const FIELD = {
   wallH: 9,
   postR: 0.35,
   ballR: 2,
+  cornerGap: 4,   // glass is left open this far from each corner; the corner podiums sit in the gap
 };
+
+// Dugout ("My Academy") behind the top touchline
+export const DUGOUT = { x: 26, halfW: 7, depth: 5, h: 3.2 };
 
 export const TEAM = { blue: 0x2f7bff, orange: 0xff7a1a };
 
@@ -257,18 +261,19 @@ export function buildArena(scene) {
     scene.add(m);
     return m;
   };
-  // long side walls, split so each half glows in its team colour
+  const G = FIELD.cornerGap;
+  // long side walls, split so each half glows in its team colour; they stop short of the corners
   for (const s of [-1, 1]) {
-    box(halfX * 2, wallH, 0.2, glass, 0, wallH / 2, s * (halfZ + 0.1));
+    box((halfX - G) * 2, wallH, 0.2, glass, 0, wallH / 2, s * (halfZ + 0.1));
     for (const [side, mat] of [[-1, blueN], [1, orangeN]]) {
-      box(halfX, 0.18, 0.3, mat, side * halfX / 2, wallH, s * (halfZ + 0.1));
-      box(halfX, 0.12, 0.3, mat, side * halfX / 2, 0.08, s * (halfZ + 0.1));
+      box(halfX - G, 0.18, 0.3, mat, side * (halfX - G) / 2, wallH, s * (halfZ + 0.1));
+      box(halfX - G, 0.12, 0.3, mat, side * (halfX - G) / 2, 0.08, s * (halfZ + 0.1));
     }
   }
   // end walls either side of the goal mouth, and above it
   for (const s of [-1, 1]) {
     const mat = s < 0 ? blueN : orangeN;
-    const segW = halfZ - goalHalfW;
+    const segW = halfZ - G - goalHalfW;
     for (const t of [-1, 1]) {
       const zc = t * (goalHalfW + segW / 2);
       box(0.2, wallH, segW, glass, s * (halfX + 0.1), wallH / 2, zc);
@@ -277,8 +282,34 @@ export function buildArena(scene) {
     }
     box(0.2, wallH - goalH, goalHalfW * 2, glass, s * (halfX + 0.1), (wallH + goalH) / 2, 0);
     box(0.3, 0.18, goalHalfW * 2, mat, s * (halfX + 0.1), wallH, 0);
-    // corner pillars
-    for (const t of [-1, 1]) box(0.5, wallH + 0.4, 0.5, whiteN, s * (halfX + 0.1), (wallH + 0.4) / 2, t * (halfZ + 0.1));
+  }
+  // corner alcoves: the glass swings out behind each corner podium (like a corner-flag cut-out)
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+    const mat = sx < 0 ? blueN : orangeN;
+    const a = new THREE.Group();
+    a.position.set(sx * halfX, 0, sz * halfZ);
+    a.scale.set(sx, 1, sz); // build the (+x,+z) corner, mirror for the others
+    // 270° arc outside the pitch, from the end of the long wall round to the end of the end wall
+    const arc = (h, y, mtl) => {
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(G, G, h, 48, 1, true, -Math.PI / 2, Math.PI * 1.5), mtl);
+      m.position.y = y;
+      a.add(m);
+    };
+    arc(wallH, wallH / 2, glass);
+    arc(0.18, wallH, new THREE.MeshBasicMaterial({ color: mat.color, side: THREE.DoubleSide }));
+    arc(0.12, 0.08, new THREE.MeshBasicMaterial({ color: mat.color, side: THREE.DoubleSide }));
+    // pillars where the straight walls meet the alcove
+    for (const [px, pz] of [[-G, 0], [0, -G]]) {
+      const p = new THREE.Mesh(new THREE.BoxGeometry(0.5, wallH + 0.4, 0.5), whiteN);
+      p.position.set(px, (wallH + 0.4) / 2, pz);
+      a.add(p);
+    }
+    // floor of the alcove
+    const f = new THREE.Mesh(new THREE.CircleGeometry(G, 40), new THREE.MeshStandardMaterial({ color: 0x0c1230, roughness: 0.8 }));
+    f.rotation.x = -Math.PI / 2;
+    f.position.y = 0.01;
+    a.add(f);
+    scene.add(a);
   }
 
   // ── goals ──
@@ -352,24 +383,30 @@ export function buildArena(scene) {
   const crowdPalette = [0x2f7bff, 0xff7a1a, 0xe9ecf5, 0x6d5dfc, 0x16213f, 0x2bd4ff, 0xffc93c, 0x384066];
   const seats = [];
   const tiers = 10, step = 2.2, rise = 1.55;
-  const addStand = (len, alongX, sign, base) => {
+  // gap = [from, to] along the stand, left open for the lowest `gapTiers` tiers (the dugout)
+  const addStand = (len, alongX, sign, base, gap = null, gapTiers = 0) => {
     for (let i = 0; i < tiers; i++) {
       const off = base + 1.2 + i * step;
       const h = 1 + i * rise;
-      const m = alongX
-        ? new THREE.Mesh(new THREE.BoxGeometry(len, h, step), standMat)
-        : new THREE.Mesh(new THREE.BoxGeometry(step, h, len), standMat);
-      if (alongX) m.position.set(0, h / 2, sign * off); else m.position.set(sign * off, h / 2, 0);
-      m.receiveShadow = true;
-      scene.add(m);
-      for (let p = -len / 2 + 0.8; p < len / 2 - 0.6; p += 1.05) {
-        if (Math.random() < 0.12) continue;
-        seats.push(alongX ? [p, h, sign * off] : [sign * off, h, p]);
+      const spans = gap && i < gapTiers ? [[-len / 2, gap[0]], [gap[1], len / 2]] : [[-len / 2, len / 2]];
+      for (const [a, b] of spans) {
+        const L = b - a, mid = (a + b) / 2;
+        const m = alongX
+          ? new THREE.Mesh(new THREE.BoxGeometry(L, h, step), standMat)
+          : new THREE.Mesh(new THREE.BoxGeometry(step, h, L), standMat);
+        if (alongX) m.position.set(mid, h / 2, sign * off); else m.position.set(sign * off, h / 2, mid);
+        m.receiveShadow = true;
+        scene.add(m);
+        for (let p = a + 0.8; p < b - 0.6; p += 1.05) {
+          if (Math.random() < 0.12) continue;
+          seats.push(alongX ? [p, h, sign * off] : [sign * off, h, p]);
+        }
       }
     }
   };
-  addStand(halfX * 2 + 4, true, -1, halfZ + 1);
-  addStand(halfX * 2 + 4, true, 1, halfZ + 1);
+  const longLen = (halfX - FIELD.cornerGap - 1.5) * 2;
+  addStand(longLen, true, -1, halfZ + 1, [DUGOUT.x - DUGOUT.halfW - 1, DUGOUT.x + DUGOUT.halfW + 1], 2);
+  addStand(longLen, true, 1, halfZ + 1);
   addStand(halfZ * 2 - 4, false, -1, halfX + goalDepth + 2);
   addStand(halfZ * 2 - 4, false, 1, halfX + goalDepth + 2);
 
