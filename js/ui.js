@@ -165,6 +165,31 @@ export class UI {
       }
     }
 
+    if (life.aspiration) {
+      frag.append(el('h3', { class: 'section' }, life.aspiration.heading));
+      for (const it of life.aspiration.items) {
+        frag.append(el('article', { class: 'life-card life-card--sport' },
+          logo(it.logo, it.logoAlt),
+          el('div', {},
+            el('p', { class: 'life-card__sport' }, it.sport),
+            el('h4', { class: 'life-card__title' }, it.href ? link(it.href, it.name, 'title-link') : it.name),
+            el('p', { class: 'life-card__text' }, it.text),
+            it.repo ? (() => {
+              const a = link(it.repo.href, '', 'repo-link');
+              a.setAttribute('aria-label', `${it.repo.label} repository`);
+              const i = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+              i.setAttribute('viewBox', '0 0 24 24');
+              i.setAttribute('aria-hidden', 'true');
+              // generic code-repository icon (a book with </>)
+              i.innerHTML = '<path d="M5 3.5h11.5a2 2 0 0 1 2 2V20H6.5A1.5 1.5 0 0 1 5 18.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M5 18.5A1.5 1.5 0 0 1 6.5 17h12" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 8.5 8 10.5l2 2M13.5 8.5l2 2-2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+              a.append(i, el('span', {}, it.repo.label), el('span', { class: 'arrow', 'aria-hidden': 'true' }, '↗'));
+              return a;
+            })() : null,
+          ),
+        ));
+      }
+    }
+
     if (life.beyond) {
       frag.append(el('h3', { class: 'section' }, life.beyond.heading));
       if (life.beyond.title) frag.append(el('p', { class: 'life__big' }, life.beyond.title));

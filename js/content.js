@@ -72,6 +72,19 @@ export const PODIUMS = [
             },
           ],
         },
+        aspiration: {
+          heading: 'Aspiration',
+          items: [
+            {
+              sport: 'Problem solving',
+              logo: 'assets/life/leetcode.png',
+              logoAlt: 'LeetCode logo',
+              name: 'LeetCode',
+              text: "Always got a but jealous by these DSA freaks, don't know if I am gonna ace this or get really good at it,  but I do practice leetcode problems every other weekend. Click the link if you want to follow up",
+              repo: { label: 'GitHub', href: 'https://github.com/MoZainUlAbideen/DSA_Python' },
+            },
+          ],
+        },
         beyond: {
           heading: 'Beyond',
           title: 'Competitive Sports Fanatic',

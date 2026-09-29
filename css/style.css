@@ -510,3 +510,17 @@ kbd {
   opacity: 1; transform: translate(-50%, 0) scale(1);
 }
 @media (max-width: 600px) { .life-card { grid-template-columns: 56px 1fr; } .life__logo { width: 56px; height: 56px; } }
+
+.repo-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 12px; padding: 8px 14px;
+  border-radius: 10px;
+  font: 700 13px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink); text-decoration: none;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  transition: background .15s, transform .15s;
+}
+.repo-link svg { width: 20px; height: 20px; color: var(--accent); }
+.repo-link .arrow { color: var(--accent); }
+.repo-link:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); transform: translateY(-1px); }
