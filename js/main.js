@@ -20,7 +20,10 @@ const DEBUG = new URLSearchParams(location.search).has('debug');
 
 // ── splash text ──
 
-await document.fonts.load('italic 700 64px "Chakra Petch"').catch(() => {});
+await Promise.all([
+  document.fonts.load('italic 700 64px "Chakra Petch"'),
+  document.fonts.load('900 64px "Orbitron"'),
+]).catch(() => {});
 
 // ── renderer ──
 const canvas = document.getElementById('scene');

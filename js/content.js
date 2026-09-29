@@ -26,9 +26,10 @@ const GH = 'https://github.com/MoZainUlAbideen';
 
 // kind: 'about' | 'interests' | 'projects' | 'certs'  (changes the floating icon + popup layout)
 // color: the podium's glow colour
+// headline: optional big glowing sign floating above the podium's label
 export const PODIUMS = [
   {
-    id: 'about', kind: 'about', label: 'WHO AM I', x: 0, z: 27, color: '#2de2ff',
+    id: 'about', kind: 'about', label: 'WHO AM I', headline: "ZAIN'S HQ", x: 0, z: 27, color: '#2de2ff',
     panel: {
       kicker: "Zain's HQ",
       title: 'Who am I',

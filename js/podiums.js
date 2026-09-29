@@ -33,6 +33,29 @@ function labelTexture(text, color) {
   return { tex: t, aspect: tw / 1024 };
 }
 
+// Big glowing sign text (no plate), for podiums with a `headline`
+function headlineTexture(text, color) {
+  const c = document.createElement('canvas');
+  c.width = 1024; c.height = 256;
+  const ctx = c.getContext('2d');
+  ctx.font = '900 140px "Orbitron", "Chakra Petch", "Arial Black", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = color; ctx.shadowBlur = 36;
+  ctx.fillStyle = color;
+  ctx.fillText(text, 512, 132, 980);
+  ctx.shadowBlur = 0;
+  ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(4,8,30,.85)';
+  ctx.strokeText(text, 512, 132, 980);
+  ctx.fillStyle = '#ffffff';
+  ctx.globalAlpha = 0.92;
+  ctx.fillText(text, 512, 132, 980);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return t;
+}
+
 function beamTexture() {
   const c = document.createElement('canvas');
   c.width = 4; c.height = 256;
@@ -143,9 +166,18 @@ export function buildPodiums(scene, list) {
     const light = new THREE.PointLight(color, 25, 12, 2);
     light.position.y = 2.6;
 
+    let headline = null;
+    if (data.headline) {
+      headline = new THREE.Sprite(new THREE.SpriteMaterial({ map: headlineTexture(data.headline, data.color), transparent: true, depthWrite: false }));
+      headline.scale.set(11, 2.75, 1);
+      headline.position.y = 7.6;
+      headline.renderOrder = 11;
+      g.add(headline);
+    }
+
     g.add(base, column, cap, trim, ring, disc, beam, icon, label, light);
     scene.add(g);
-    out.push({ data, group: g, ring, disc, beam, icon, label, light, glowMat, x: data.x, z: data.z, near: 0 });
+    out.push({ data, group: g, ring, disc, beam, icon, label, headline, light, glowMat, x: data.x, z: data.z, near: 0 });
   }
   return out;
 }
@@ -165,5 +197,9 @@ export function updatePodiums(pods, t, dt, activeId) {
     p.light.intensity = 18 + 10 * pulse + 30 * p.near;
     const s = 1 + 0.12 * p.near;
     p.label.scale.set(7.2 * s, 1.8 * s, 1);
+    if (p.headline) {
+      p.headline.position.y = 7.6 + Math.sin(t * 1.3) * 0.15;
+      p.headline.material.opacity = 0.85 + 0.15 * pulse;
+    }
   }
 }

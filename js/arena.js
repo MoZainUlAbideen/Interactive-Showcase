@@ -51,7 +51,7 @@ function pitchTextures() {
 
   // base: deep navy with a soft vignette
   const bg = base.createLinearGradient(0, 0, W, 0);
-  bg.addColorStop(0, '#26356e'); bg.addColorStop(0.5, '#2b2c66'); bg.addColorStop(1, '#3a2a58');
+  bg.addColorStop(0, '#0a1233'); bg.addColorStop(0.5, '#0d0f2e'); bg.addColorStop(1, '#1a0f26');
   base.fillStyle = bg; base.fillRect(0, 0, W, Hh);
   glow.fillStyle = '#000'; glow.fillRect(0, 0, W, Hh);
 
@@ -64,7 +64,7 @@ function pitchTextures() {
     const c = mix((i + 0.5) / cols);
     // tile body, slightly lighter than the gaps
     rrect(base, x, y, w, h, rad);
-    base.fillStyle = 'rgba(150,170,255,.10)'; base.fill();
+    base.fillStyle = 'rgba(30,40,95,.35)'; base.fill();
     // circuit dots
     base.fillStyle = 'rgba(120,150,255,.10)';
     for (let dx = x + 10; dx < x + w - 6; dx += 14) for (let dy = y + 10; dy < y + h - 6; dy += 14) {
@@ -78,12 +78,12 @@ function pitchTextures() {
     }
     // glowing outline
     rrect(glow, x, y, w, h, rad);
-    glow.shadowColor = rgba(c, 0.8); glow.shadowBlur = 6;
-    glow.strokeStyle = rgba(c, 0.5); glow.lineWidth = 0.14 * S;
+    glow.shadowColor = rgba(c, 1); glow.shadowBlur = 10;
+    glow.strokeStyle = rgba(c, 0.9); glow.lineWidth = 0.2 * S;
     glow.stroke();
     glow.shadowBlur = 0;
     rrect(base, x, y, w, h, rad);
-    base.strokeStyle = rgba(c, 0.45); base.lineWidth = 0.14 * S; base.stroke();
+    base.strokeStyle = rgba(c, 0.55); base.lineWidth = 0.2 * S; base.stroke();
   }
 
   // football markings, bright white-cyan, on both layers
@@ -237,7 +237,7 @@ export function buildArena(scene) {
   // Lambert (no specular) keeps the floor dark navy at low camera angles;
   // the glow comes entirely from the emissive tile/line layer.
   const pitchMat = new THREE.MeshLambertMaterial({
-    map, color: 0xc4ccee, emissiveMap: glow, emissive: 0xffffff, emissiveIntensity: 0.85,
+    map, color: 0x8a96c4, emissiveMap: glow, emissive: 0xffffff, emissiveIntensity: 0.8,
   });
   const pitch = new THREE.Mesh(new THREE.PlaneGeometry(halfX * 2, halfZ * 2), pitchMat);
   pitch.rotation.x = -Math.PI / 2;
