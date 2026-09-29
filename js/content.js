@@ -10,7 +10,7 @@
 //  B │                             │ O    x runs left (-50) → right (+50)
 //  L ▌goal         (o)        goal ▐ R    z runs top (-32) → bottom (+32)
 //  U │                             │ A
-//  E │ EXPERIENCE  WHO AM I  PROJECTS│ N
+//  E │ EXPERIENCE VISION WHO AM I PROJECTS│ N
 //    └──────────────┴──────────────┘ G
 //        bottom (z = +32)            E
 // ─────────────────────────────────────────────────────────────
@@ -48,6 +48,28 @@ export const PODIUMS = [
         { label: 'GitHub', href: GH },
         { label: 'Resume', href: 'resume/Muhammad-Zain-ul-Abideen-Resume.pdf' },
         { label: 'Email', href: 'mailto:mu.zainulabideen@gmail.com' },
+      ],
+    },
+  },
+  {
+    // between ZAIN'S HQ (0, 27) and EXPERIENCE (-38, 24)
+    id: 'vision', kind: 'vision', label: 'VISION', x: -19, z: 26, color: '#60a5fa',
+    panel: {
+      kicker: 'Behind the build',
+      title: 'Vision',
+      vision: [
+        {
+          heading: 'Where did this portfolio Idea come from',
+          text: 'There\'s this mini car placed on my desk, and whenever I looked at it, it inspired me to "think less, do more"',
+          img: 'assets/life/beyond-car.png',
+          alt: 'The purple Beyond Mini 4WD toy car from my desk',
+        },
+        {
+          heading: 'Rocket League',
+          text: "That probably u would have guessed till now, that's one of my all time favorite games, So combining my mini toy car with Rocket League made this vision come to life",
+          img: 'assets/life/rocket-league.png',
+          alt: 'Rocket League logo',
+        },
       ],
     },
   },

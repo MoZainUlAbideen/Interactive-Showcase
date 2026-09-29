@@ -524,3 +524,21 @@ kbd {
 .repo-link svg { width: 20px; height: 20px; color: var(--accent); }
 .repo-link .arrow { color: var(--accent); }
 .repo-link:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); transform: translateY(-1px); }
+
+/* ───────── Vision: text + picture side by side ───────── */
+.story {
+  display: grid; grid-template-columns: 1fr 240px; gap: 22px; align-items: center;
+  padding: 18px 20px; margin-bottom: 8px;
+  border-radius: 14px;
+  background: radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%), rgba(255, 255, 255, .035);
+  border: 1px solid var(--line);
+}
+.story--flip { grid-template-columns: 200px 1fr; }
+.story--flip .story__img { order: -1; }
+.story__text { margin: 0 !important; font-size: 17px; line-height: 1.7; color: var(--ink); }
+.story__img { width: 100%; height: auto; max-height: 220px; object-fit: contain; filter: drop-shadow(0 12px 24px rgba(0, 0, 0, .5)); }
+@media (max-width: 600px) {
+  .story, .story--flip { grid-template-columns: 1fr; }
+  .story--flip .story__img { order: 0; }
+  .story__img { max-height: 180px; }
+}

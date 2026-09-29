@@ -118,6 +118,15 @@ export class UI {
       ))));
     }
     if (p.life) body.append(this.renderLife(p.life));
+    if (p.vision) {
+      p.vision.forEach((s, i) => {
+        body.append(el('h3', { class: 'section' }, s.heading));
+        body.append(el('div', { class: `story${i % 2 ? ' story--flip' : ''}` },
+          el('p', { class: 'story__text' }, s.text),
+          el('img', { class: 'story__img', src: s.img, alt: s.alt, loading: 'lazy' }),
+        ));
+      });
+    }
     if (p.certs) {
       body.append(el('ul', { class: 'certs' }, p.certs.map((c) => el('li', { class: 'cert' },
         el('div', { class: 'cert__medal', 'aria-hidden': 'true' }),
@@ -136,7 +145,7 @@ export class UI {
       body.append(el('div', { class: 'links' }, p.links.map((l) => link(l.href, l.label, 'btn'))));
     }
 
-    this.card.classList.toggle('panel__card--wide', !!(p.items || p.experience || p.skills || p.life));
+    this.card.classList.toggle('panel__card--wide', !!(p.items || p.experience || p.skills || p.life || p.vision));
     this.card.scrollTop = 0;
     this.panel.hidden = false;
     this.panelOpen = true;

@@ -92,6 +92,12 @@ function iconFor(kind, mat) {
       layer.position.y = -0.3 + i * 0.3;
       g.add(layer);
     }
+  } else if (kind === 'vision') {
+    // an eye: ring + pupil
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.1, 10, 36), mat);
+    g.add(ring);
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.3, 20, 14), new THREE.MeshBasicMaterial({ color: mat.emissive.clone().multiplyScalar(0.8) }));
+    g.add(pupil);
   } else if (kind === 'certs') {
     const medal = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.12, 32), mat);
     medal.rotation.x = Math.PI / 2;
