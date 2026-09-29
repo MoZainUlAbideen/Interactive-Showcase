@@ -81,9 +81,17 @@ export const PODIUMS = [
               logo: 'assets/life/fcb.png',
               logoAlt: 'FC Barcelona crest',
               name: 'FC Barcelona',
-              text: "The first complete football match I watched was the 2015 Champions League final, and I've never looked back since. It's a hard love affair with this team: they almost bottle the Champions League every year, but they dismantle Real Madrid three times a year. Hahahah.",
+              text: "The first complete football match I watched was the 2015 Champions League final, and I've never looked back since. It's a hard love affair with this team, they almost bottle the Champions League every year, but they dismantle Real Madrid three times a year. Hahahah.",
               // hover / tap the badge to pop up the player's photo
               player: { label: 'Player of choice', img: 'assets/life/player.jpg', alt: 'Pedri in the FC Barcelona number 8 shirt' },
+            },
+            {
+              sport: 'Cricket',
+              logo: 'assets/life/pak-star.png',
+              logoAlt: 'Pakistan cricket star emblem',
+              name: 'Pakistan Cricket Team',
+              text: "This Love affair has always been one sided. Still can't believe how I end up seeing all their matches ball by ball, well some things are bigger than sports. After all, this is the only sport we play.",
+              player: { label: 'Player of choice', img: 'assets/life/player-cricket.jpg', alt: 'Babar Azam celebrating in the Pakistan shirt' },
             },
           ],
         },
