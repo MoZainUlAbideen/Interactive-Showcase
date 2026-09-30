@@ -126,7 +126,11 @@ export class UI {
         body.append(el('h3', { class: 'section' }, s.heading));
         body.append(el('div', { class: `story${i % 2 ? ' story--flip' : ''}` },
           el('p', { class: 'story__text' }, s.text),
-          el('img', { class: 'story__img', src: s.img, alt: s.alt, loading: 'lazy' }),
+          s.tip
+            ? el('span', { class: 'story__pic', tabindex: '0' },
+                el('img', { class: 'story__img', src: s.img, alt: s.alt, loading: 'lazy' }),
+                el('span', { class: 'story__tip', role: 'tooltip' }, s.tip))
+            : el('img', { class: 'story__img', src: s.img, alt: s.alt, loading: 'lazy' }),
         ));
       });
     }

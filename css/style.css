@@ -546,3 +546,29 @@ kbd {
 
 .facts .has-logo dd { display: flex; align-items: center; gap: 12px; }
 .facts__logo { width: 44px; height: 44px; object-fit: contain; flex: none; }
+
+/* hover / tap message on a Vision picture */
+.story__pic { position: relative; display: block; cursor: help; border-radius: 12px; outline-offset: 4px; }
+.story--flip .story__pic { order: -1; }
+.story__tip {
+  position: absolute; left: 50%; bottom: calc(100% + 6px);
+  padding: 9px 14px; border-radius: 10px; white-space: nowrap;
+  font: 700 13px/1 var(--font-display); letter-spacing: .06em;
+  color: #06121a; background: var(--accent);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .5), 0 0 20px color-mix(in srgb, var(--accent) 45%, transparent);
+  opacity: 0; pointer-events: none;
+  transform: translate(-50%, 8px) scale(.95);
+  transition: opacity .16s ease, transform .16s ease;
+  z-index: 2;
+}
+.story__tip::after {
+  content: ""; position: absolute; left: 50%; top: 100%;
+  border: 7px solid transparent; border-top-color: var(--accent);
+  transform: translateX(-50%);
+}
+.story__pic:hover .story__tip, .story__pic:focus .story__tip, .story__pic:focus-within .story__tip {
+  opacity: 1; transform: translate(-50%, 0) scale(1);
+}
+.story__pic:hover .story__img { transform: scale(1.04) rotate(-2deg); }
+.story__img { transition: transform .25s ease; }
+@media (max-width: 600px) { .story--flip .story__pic { order: 0; } .story__tip { white-space: normal; width: 200px; text-align: center; } }

@@ -59,16 +59,17 @@ export const PODIUMS = [
       title: 'Vision',
       vision: [
         {
-          heading: 'Where did this portfolio Idea come from',
-          text: 'There\'s this mini car placed on my desk, and whenever I looked at it, it inspired me to "think less, do more"',
-          img: 'assets/life/beyond-car.png',
-          alt: 'The purple Beyond Mini 4WD toy car from my desk',
-        },
-        {
           heading: 'Rocket League',
-          text: "That probably u would have guessed till now, that's one of my all time favorite games, So combining my mini toy car with Rocket League made this vision come to life",
+          text: "\u201cThat probably u would have guessed till now, that's one of my all time favorite games, So combining my mini toy car with Rocket League made this vision come to life\u201d",
           img: 'assets/life/rocket-league.png',
           alt: 'Rocket League logo',
+        },
+        {
+          heading: 'Where did this portfolio Idea come from',
+          text: "There's this mini car placed on my desk, and every time I look at it, Life resets",
+          img: 'assets/life/beyond-car.png',
+          alt: 'The purple Beyond Mini 4WD toy car from my desk',
+          tip: "That's the car you're driving right now",   // pops up when you hover the picture
         },
       ],
     },
