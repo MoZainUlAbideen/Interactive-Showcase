@@ -90,9 +90,10 @@ export function buildCar() {
 
   // ── materials ──
   const body = new THREE.MeshPhysicalMaterial({
-    color: 0x4020c8, emissive: 0x1a0a66, emissiveIntensity: 0.3,
-    roughness: 0.12, metalness: 0.05, clearcoat: 1, clearcoatRoughness: 0.08,
-    transparent: true, opacity: 0.86,
+    color: 0x0f0d66, emissive: 0x06052e, emissiveIntensity: 0.3, // deep royal blue, like the real toy
+    roughness: 0.25, metalness: 0.05, clearcoat: 0.35, clearcoatRoughness: 0.2,
+    envMapIntensity: 0.25, // less mirror-like sheen, so the deep blue reads like the real plastic
+    transparent: true, opacity: 0.9,
   });
   const canopyMat = new THREE.MeshPhysicalMaterial({
     color: 0x1fc2cf, emissive: 0x0a5560, emissiveIntensity: 0.4,
@@ -302,7 +303,7 @@ export function buildCar() {
   car.add(flames);
 
   // soft under-glow so the car pops at night
-  const glow = new THREE.PointLight(0x6a4bff, 6, 7, 2);
+  const glow = new THREE.PointLight(0x3346ff, 3, 7, 2);
   glow.position.set(0, 0.4, 0);
   car.add(glow);
 
