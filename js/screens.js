@@ -11,10 +11,15 @@ const PIXEL = '"Press Start 2P", "Orbitron", monospace';
 export const MAIN_TITLE = 'Welcome to My World !';
 
 function makeScreen(scene, { w, h, px, x, y, z, rotY, color }) {
+  // drawn in a fixed 2000-wide "logical" space, stored at a lower resolution
+  const LW = 2000, LH = Math.round(LW * h / w), k = px / LW;
   const canvas = document.createElement('canvas');
-  canvas.width = px; canvas.height = Math.round(px * h / w);
+  canvas.width = px; canvas.height = Math.round(LH * k);
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
+  // no mipmaps: rebuilding them on every redraw was the expensive part
+  tex.generateMipmaps = false;
+  tex.minFilter = THREE.LinearFilter;
   tex.anisotropy = 4;
 
   const g = new THREE.Group();
@@ -36,7 +41,13 @@ function makeScreen(scene, { w, h, px, x, y, z, rotY, color }) {
   }
   g.add(frame, trim, trimTop, panel);
   scene.add(g);
-  return { canvas, ctx: canvas.getContext('2d'), tex };
+  const ctx = canvas.getContext('2d');
+  // static layer (backdrop, portrait, glow), painted once and reused
+  const base = document.createElement('canvas');
+  base.width = canvas.width; base.height = canvas.height;
+  const bctx = base.getContext('2d');
+  bctx.setTransform(k, 0, 0, k, 0, 0);
+  return { canvas, ctx, tex, base, bctx, LW, LH, k, panel };
 }
 
 // LED-panel backdrop: dark gradient, faint dot grid and scanlines
@@ -71,18 +82,18 @@ export function buildScreens(scene) {
   const back = halfX + FIELD.goalDepth + 2 + 1.2 + 10 * 2.2 + 3; // behind the end stands
 
   // the +x end: what you see at kick-off
-  const main = makeScreen(scene, { w: 54, h: 19, px: 2000, x: back, y: 27, z: 0, rotY: -Math.PI / 2, color: 0xff7a1a });
+  const main = makeScreen(scene, { w: 54, h: 19, px: 1400, x: back, y: 27, z: 0, rotY: -Math.PI / 2, color: 0xff7a1a });
+  const { LW: W, LH: H } = main;
   const portrait = new Image();
   portrait.src = 'assets/life/zain-retro.png';
 
   const seq = { i: 0, t: 0, hold: 0 };
-  let goals = 0, flash = 0, last = '', blink = 0;
+  let goals = 0, flash = 0, last = '', blink = 0, baseReady = false, textLeft = 80, textMaxW = 1000;
 
-  function draw(n, cursorOn) {
-    const { ctx, canvas: { width: W, height: H } } = main;
+  // paint the parts that never change into the static layer
+  function paintBase() {
+    const ctx = main.bctx;
     backdrop(ctx, W, H, '#ff7a1a');
-
-    // portrait: right side, full height, standing on the bottom edge
     const ok = portrait.complete && portrait.naturalWidth;
     const ph = H - 24, pw = ok ? ph * portrait.naturalWidth / portrait.naturalHeight : 0;
     const px = W - pw - 50;
@@ -92,17 +103,26 @@ export function buildScreens(scene) {
       ctx.fillStyle = glow; ctx.fillRect(px - 120, 0, pw + 240, H);
       ctx.drawImage(portrait, px, H - ph, pw, ph);
     }
+    textMaxW = (ok ? px : W) - textLeft - 60;
+    baseReady = ok;
+  }
 
-    const left = 80, maxW = (ok ? px : W) - left - 60;
+  function draw(n, cursorOn) {
+    const ctx = main.ctx;
+    if (!baseReady) paintBase();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(main.base, 0, 0);
+    ctx.setTransform(main.k, 0, 0, main.k, 0, 0);
+    const left = textLeft;
 
     // title
     ctx.textBaseline = 'top';
     ctx.font = `92px ${PIXEL}`;
-    const lines = wrap(ctx, MAIN_TITLE.slice(0, n), maxW);
+    const lines = wrap(ctx, MAIN_TITLE.slice(0, n), textMaxW);
     const lh = 126, top = 100;
-    ctx.shadowColor = '#ffb347'; ctx.shadowBlur = 22;
+    ctx.shadowColor = '#ffb347'; ctx.shadowBlur = 16;
     ctx.fillStyle = '#ffd27a';
-    lines.forEach((l, k) => ctx.fillText(l, left, top + k * lh));
+    lines.forEach((l, i) => ctx.fillText(l, left, top + i * lh));
     ctx.shadowBlur = 0;
     if (cursorOn) {
       const lastLine = lines[lines.length - 1] || '';
@@ -112,15 +132,14 @@ export function buildScreens(scene) {
     // goals counter, same pixel font as the title
     const hot = flash > 0 && Math.floor(flash * 6) % 2 === 0;
     const gy = H - 150;
-    ctx.textBaseline = 'top';
     ctx.font = `64px ${PIXEL}`;
-    ctx.shadowColor = '#ffb347'; ctx.shadowBlur = 18;
+    ctx.shadowColor = '#ffb347'; ctx.shadowBlur = 14;
     ctx.fillStyle = '#ffd27a';
     const label = 'GOALS : ';
     ctx.fillText(label, left, gy);
     const nx = left + ctx.measureText(label).width + 10;
     ctx.font = `88px ${PIXEL}`;
-    ctx.shadowColor = hot ? '#ffffff' : '#ffb347'; ctx.shadowBlur = hot ? 30 : 18;
+    ctx.shadowColor = hot ? '#ffffff' : '#ffb347'; ctx.shadowBlur = hot ? 24 : 14;
     ctx.fillStyle = hot ? '#ffffff' : '#ffd27a';
     ctx.fillText(String(goals), nx, gy - 12);
     ctx.shadowBlur = 0;
@@ -128,7 +147,18 @@ export function buildScreens(scene) {
     main.tex.needsUpdate = true;
   }
 
-  function update(dt) {
+  // only redraw while the screen is actually in view
+  const frustum = new THREE.Frustum(), pv = new THREE.Matrix4(), box = new THREE.Box3();
+  main.panel.updateWorldMatrix(true, false);
+  box.setFromObject(main.panel);
+  function inView(camera) {
+    if (!camera) return true;
+    pv.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    frustum.setFromProjectionMatrix(pv);
+    return frustum.intersectsBox(box);
+  }
+
+  function update(dt, camera) {
     blink += dt;
     const cursorOn = Math.floor(blink * 2.2) % 2 === 0;
     if (flash > 0) flash = Math.max(0, flash - dt);
@@ -139,8 +169,9 @@ export function buildScreens(scene) {
     else if (seq.t > 0.1) { seq.t = 0; seq.i++; if (seq.i >= MAIN_TITLE.length) seq.hold = 8; }
     const n = Math.min(seq.i, MAIN_TITLE.length);
 
-    const key = `${n}|${cursorOn}|${goals}|${flash > 0 ? Math.floor(flash * 6) : -1}|${portrait.complete}`;
-    if (key !== last) { last = key; draw(n, cursorOn); }
+    if (portrait.complete && !baseReady) paintBase();
+    const key = `${n}|${cursorOn}|${goals}|${flash > 0 ? Math.floor(flash * 6) : -1}|${baseReady}`;
+    if (key !== last && inView(camera)) { last = key; draw(n, cursorOn); }
   }
 
   function setGoals(g) { goals = g; flash = 2.4; }

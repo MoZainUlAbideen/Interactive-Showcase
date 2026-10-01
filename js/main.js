@@ -270,7 +270,7 @@ function frame() {
   if (state === 'play' && !busy) ui.setPrompt(nearPod?.data);
   updatePodiums(pods, t, dt, nearPod?.data.id);
   dugout.update(t, nearPod?.data.id === 'academy' ? 1 : 0);
-  if (!academy.isOpen) screens.update(dt);
+  if (!academy.isOpen) screens.update(dt, camera);
   ui.setBoost(c.boost);
 
   fx.update(dt);
