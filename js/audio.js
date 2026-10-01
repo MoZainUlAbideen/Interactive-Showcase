@@ -82,15 +82,16 @@ export class ArenaAudio {
     const ctx = this.ctx;
     this.engFilter = ctx.createBiquadFilter();
     this.engFilter.type = 'lowpass';
-    this.engFilter.frequency.value = 1400;
-    this.engFilter.Q.value = 0.5;
+    this.engFilter.frequency.value = 900;
+    this.engFilter.Q.value = 0.8;
     this.engGain = ctx.createGain();
     this.engGain.gain.value = 0;
     this.engFilter.connect(this.engGain).connect(this.master);
-    this.engOsc = [['triangle', 1, 1], ['sine', 2, 0.35]].map(([type, mult, level]) => {
+    // motor tone + a soft low growl underneath (a touch of Rocket League weight)
+    this.engOsc = [['triangle', 1, 1], ['sine', 2, 0.25], ['sawtooth', 0.5, 0.35]].map(([type, mult, level]) => {
       const o = ctx.createOscillator();
       o.type = type;
-      o.frequency.value = 140 * mult;
+      o.frequency.value = 100 * mult;
       const g = ctx.createGain();
       g.gain.value = level;
       o.connect(g).connect(this.engFilter);
@@ -100,8 +101,8 @@ export class ArenaAudio {
     // a faint shimmer so it sounds like a spinning motor, not a flat tone
     const shimmer = ctx.createOscillator();
     const sg = ctx.createGain();
-    shimmer.frequency.value = 23;
-    sg.gain.value = 6;
+    shimmer.frequency.value = 19;
+    sg.gain.value = 4;
     shimmer.connect(sg);
     for (const { o } of this.engOsc) sg.connect(o.frequency);
     shimmer.start();
@@ -113,10 +114,10 @@ export class ArenaAudio {
     const t = this.ctx.currentTime;
     const s = Math.min(1, Math.abs(speed) / 40);
     const rev = onGround ? s : Math.max(s, 0.5);
-    const f = 140 + rev * 260 + (boosting ? 40 : 0);
+    const f = 100 + rev * 210 + (boosting ? 30 : 0);
     for (const { o, mult } of this.engOsc) o.frequency.setTargetAtTime(f * mult, t, 0.12);
-    this.engFilter.frequency.setTargetAtTime(1200 + rev * 1400, t, 0.15);
-    const vol = (Math.abs(speed) > 0.5 || throttle ? 0.006 : 0) + rev * 0.012 + (boosting ? 0.004 : 0);
+    this.engFilter.frequency.setTargetAtTime(800 + rev * 1100, t, 0.15);
+    const vol = (Math.abs(speed) > 0.5 || throttle ? 0.007 : 0) + rev * 0.014 + (boosting ? 0.005 : 0);
     this.engGain.gain.setTargetAtTime(vol, t, 0.15);
   }
 
@@ -157,7 +158,7 @@ export class ArenaAudio {
     const ctx = this.ctx, t = ctx.currentTime;
 
     // crowd roar
-    for (const [freq, q, peak] of [[900, 0.5, 0.9], [300, 0.7, 0.8], [2200, 0.9, 0.3]]) {
+    for (const [freq, q, peak] of [[900, 0.5, 0.65], [300, 0.7, 0.58], [2200, 0.9, 0.22]]) {
       const n = this.noiseSource();
       const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
       const g = ctx.createGain();
@@ -173,8 +174,8 @@ export class ArenaAudio {
     const horn = ctx.createGain();
     const hl = ctx.createBiquadFilter(); hl.type = 'lowpass'; hl.frequency.value = 1800;
     horn.gain.setValueAtTime(0.0001, t);
-    horn.gain.exponentialRampToValueAtTime(0.16, t + 0.08);
-    horn.gain.setValueAtTime(0.16, t + 1.1);
+    horn.gain.exponentialRampToValueAtTime(0.12, t + 0.08);
+    horn.gain.setValueAtTime(0.12, t + 1.1);
     horn.gain.exponentialRampToValueAtTime(0.0001, t + 1.9);
     hl.connect(horn).connect(this.master);
     for (const f of [196, 246.9, 293.7, 392]) {

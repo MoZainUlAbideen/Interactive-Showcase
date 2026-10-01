@@ -95,9 +95,11 @@ export function buildCar() {
     envMapIntensity: 0.25, // less mirror-like sheen, so the deep blue reads like the real plastic
     transparent: true, opacity: 0.9,
   });
+  // dark tinted glass you can see the driver through
   const canopyMat = new THREE.MeshPhysicalMaterial({
-    color: 0x1fc2cf, emissive: 0x0a5560, emissiveIntensity: 0.4,
-    roughness: 0.05, metalness: 0.1, clearcoat: 1, transparent: true, opacity: 0.72,
+    color: 0x0e6474, emissive: 0x053a46, emissiveIntensity: 0.55,
+    roughness: 0.04, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 0.9,
+    transparent: true, opacity: 0.58, depthWrite: false, side: THREE.DoubleSide,
   });
   const grey = new THREE.MeshStandardMaterial({ color: 0x6d7079, roughness: 0.55, metalness: 0.3 });
   const darkGrey = new THREE.MeshStandardMaterial({ color: 0x2a2c33, roughness: 0.6, metalness: 0.3 });
@@ -158,11 +160,48 @@ export function buildCar() {
     m.rotation.x = noseSlope;
   }
 
-  // ── canopy ──
-  const canopy = add(new THREE.SphereGeometry(1, 32, 20, 0, Math.PI * 2, 0, Math.PI / 2), canopyMat, 0, 1.08, 0.05);
-  canopy.scale.set(0.64, 0.58, 1.2);
-  // driver bar you can see inside the canopy
-  add(new THREE.BoxGeometry(0.1, 0.35, 0.9), new THREE.MeshStandardMaterial({ color: 0x1ea9b8, roughness: 0.3 }), 0, 1.25, 0.1);
+  // ── canopy: a long teardrop that widens and slopes down toward the front-wheel fenders ──
+  const canopyGeo = new THREE.SphereGeometry(1, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2);
+  const cp = canopyGeo.attributes.position;
+  for (let i = 0; i < cp.count; i++) {
+    const x = cp.getX(i), y = cp.getY(i), z = cp.getZ(i);
+    const f = Math.max(0, z);                        // 0 at the back half, 1 at the very front
+    cp.setXYZ(i,
+      x * (0.7 + 0.28 * f),                          // wider toward the fenders
+      y * 0.62 * (1 - 0.5 * f) - 0.26 * f,           // lower and sloping at the front
+      z * 1.55);                                      // longer
+  }
+  canopyGeo.computeVertexNormals();
+  const canopy = add(canopyGeo, canopyMat, 0, 1.04, 0.3);
+  canopy.castShadow = false;
+  canopy.renderOrder = 2;
+
+  // a little driver sitting inside (visible through the tinted glass)
+  const driver = new THREE.Group();
+  driver.position.set(0, 1.02, -0.15);
+  const suit = new THREE.MeshStandardMaterial({ color: 0xf2f2f5, roughness: 0.6 });
+  const helmet = new THREE.MeshStandardMaterial({ color: 0xff6a1f, roughness: 0.35, metalness: 0.2 });
+  const visor = new THREE.MeshStandardMaterial({ color: 0x0a0d18, roughness: 0.1, metalness: 0.6 });
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.18, 4, 10), suit);
+  torso.position.y = 0.2;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 20, 14), helmet);
+  head.position.y = 0.55;
+  const shield = new THREE.Mesh(new THREE.SphereGeometry(0.175, 20, 10, -Math.PI * 0.35, Math.PI * 0.7, Math.PI * 0.32, Math.PI * 0.26), visor);
+  shield.position.y = 0.55;
+  const stripe = new THREE.Mesh(new THREE.TorusGeometry(0.172, 0.02, 6, 24, Math.PI), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+  stripe.position.y = 0.55;
+  stripe.rotation.set(0, Math.PI / 2, Math.PI / 2);
+  for (const s of [-1, 1]) {
+    const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.22, 3, 6), suit);
+    arm.position.set(s * 0.17, 0.22, 0.14);
+    arm.rotation.x = -1.1;
+    driver.add(arm);
+  }
+  const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.018, 6, 16), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+  wheel.position.set(0, 0.3, 0.32);
+  wheel.rotation.x = -0.5;
+  driver.add(torso, head, shield, stripe, wheel);
+  car.add(driver);
 
   // ── rear wing ──
   const wing = new THREE.Group();
