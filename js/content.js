@@ -37,7 +37,6 @@ export const PODIUMS = [
       subtitle: 'Muhammad Zain-ul-Abideen · AI Full Stack Engineer · Islamabad, Pakistan',
       paragraphs: [
         'I ship production LLM applications: retrieval-augmented generation, multi-agent pipelines and eval harnesses on Python/FastAPI backends with Next.js frontends, backed by automated tests, CI/CD and observability.',
-        'Drive to the EXPERIENCE and STACK podiums for where I have worked and what I build with.',
       ],
       facts: [
         ['Education', 'Bachelors in Electrical Engineering, NUST CEME · 2022 – 2026', 'assets/life/nust-ceme.png'],
