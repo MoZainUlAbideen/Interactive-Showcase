@@ -60,6 +60,7 @@
           <li><span class="toolkit__keys"><kbd>Space</kbd></span>Jump</li>
           <li><span class="toolkit__keys"><kbd>C</kbd></span>Ball cam</li>
           <li><span class="toolkit__keys"><kbd>M</kbd></span>Sound on/off</li>
+          <li><span class="toolkit__keys"><kbd>F</kbd></span>Full screen</li>
         </ul>
       </div>
 
@@ -75,7 +76,10 @@
 
   <!-- ───────── HUD ───────── -->
   <div id="hud" class="hud" hidden>
-    <button id="mute" class="mute" type="button" aria-pressed="false"><span>Sound on</span><kbd>M</kbd></button>
+    <div class="hud-btns">
+      <button id="fullscreen" class="mute" type="button" aria-pressed="false"><span>Full screen</span><kbd>F</kbd></button>
+      <button id="mute" class="mute" type="button" aria-pressed="false"><span>Sound on</span><kbd>M</kbd></button>
+    </div>
 
     <div id="prompt" class="prompt" hidden role="status">
       <kbd>E</kbd><span>Open</span><strong id="prompt-label"></strong>
@@ -83,7 +87,7 @@
 
     <div id="help" class="help">
       <span><kbd>WASD</kbd> drive</span><span><kbd>Shift</kbd> boost</span><span><kbd>Space</kbd> jump</span>
-      <span><kbd>E</kbd> open</span><span><kbd>R</kbd> reset</span><span><kbd>M</kbd> sound</span><span><kbd>H</kbd> hide</span>
+      <span><kbd>E</kbd> open</span><span><kbd>R</kbd> reset</span><span><kbd>M</kbd> sound</span><span><kbd>F</kbd> full screen</span><span><kbd>H</kbd> hide</span>
     </div>
     <p id="ballcam" class="ballcam"><span class="ballcam__dot"></span>Ball cam <kbd>C</kbd></p>
 

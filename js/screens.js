@@ -109,27 +109,21 @@ export function buildScreens(scene) {
       ctx.fillRect(left + ctx.measureText(lastLine).width + 12, top + (lines.length - 1) * lh, 48, 90);
     }
 
-    // goals counter, scoreboard style
-    const bx = left, by = H - 250, bh = 170;
-    ctx.font = `52px ${PIXEL}`;
-    const label = 'GOALS', lw = ctx.measureText(label).width + 80;
-    ctx.fillStyle = 'rgba(12,18,52,.95)';
-    ctx.fillRect(bx, by, lw, bh);
-    ctx.strokeStyle = '#3d5bd6'; ctx.lineWidth = 4; ctx.strokeRect(bx, by, lw, bh);
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#dfe6ff';
-    ctx.fillText(label, bx + 40, by + bh / 2 + 4);
-    // number box
-    ctx.font = `110px ${PIXEL}`;
-    const num = String(goals), nw = Math.max(220, ctx.measureText(num).width + 80);
+    // goals counter, same pixel font as the title
     const hot = flash > 0 && Math.floor(flash * 6) % 2 === 0;
-    ctx.fillStyle = hot ? '#ff7a1a' : '#2f6bff';
-    ctx.fillRect(bx + lw, by, nw, bh);
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = '#ffffff'; ctx.shadowBlur = hot ? 26 : 10;
-    ctx.textAlign = 'center';
-    ctx.fillText(num, bx + lw + nw / 2, by + bh / 2 + 6);
-    ctx.textAlign = 'left'; ctx.shadowBlur = 0;
+    const gy = H - 150;
+    ctx.textBaseline = 'top';
+    ctx.font = `64px ${PIXEL}`;
+    ctx.shadowColor = '#ffb347'; ctx.shadowBlur = 18;
+    ctx.fillStyle = '#ffd27a';
+    const label = 'GOALS : ';
+    ctx.fillText(label, left, gy);
+    const nx = left + ctx.measureText(label).width + 10;
+    ctx.font = `88px ${PIXEL}`;
+    ctx.shadowColor = hot ? '#ffffff' : '#ffb347'; ctx.shadowBlur = hot ? 30 : 18;
+    ctx.fillStyle = hot ? '#ffffff' : '#ffd27a';
+    ctx.fillText(String(goals), nx, gy - 12);
+    ctx.shadowBlur = 0;
 
     main.tex.needsUpdate = true;
   }

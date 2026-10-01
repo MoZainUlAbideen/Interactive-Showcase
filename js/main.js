@@ -79,6 +79,27 @@ const showMute = () => { muteBtn.querySelector('span').textContent = audio.muted
 showMute();
 muteBtn.addEventListener('click', () => { audio.toggleMute(); showMute(); canvas.focus(); });
 
+// full screen (F or the button); Esc leaves it as usual
+const fsBtn = document.getElementById('fullscreen');
+const root = document.documentElement;
+const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement;
+const canFs = !!(root.requestFullscreen || root.webkitRequestFullscreen);
+function toggleFullscreen() {
+  if (!canFs) return;
+  try {
+    const r = fsElement()
+      ? (document.exitFullscreen || document.webkitExitFullscreen).call(document)
+      : (root.requestFullscreen || root.webkitRequestFullscreen).call(root);
+    if (r && r.catch) r.catch(() => {});
+  } catch {}
+}
+const showFs = () => { const on = !!fsElement(); fsBtn.querySelector('span').textContent = on ? 'Exit full screen' : 'Full screen'; fsBtn.setAttribute('aria-pressed', String(on)); };
+if (!canFs) fsBtn.hidden = true;
+fsBtn.addEventListener('click', () => { toggleFullscreen(); canvas.focus(); });
+document.addEventListener('fullscreenchange', showFs);
+document.addEventListener('webkitfullscreenchange', showFs);
+addEventListener('resize', showFs);
+
 let goals = 0;
 let shake = 0;
 const physics = new Physics(pods, {
@@ -115,6 +136,7 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyC') { ballCam = !ballCam; ui.setBallCam(ballCam); }
   if (e.code === 'KeyR') { physics.resetCar(); physics.resetBall(); }
   if (e.code === 'KeyM') { audio.toggleMute(); showMute(); }
+  if (e.code === 'KeyF') toggleFullscreen();
   if (e.code === "KeyH") document.getElementById('help').classList.toggle('is-hidden');
 });
 addEventListener('keyup', (e) => keys.delete(e.code));
