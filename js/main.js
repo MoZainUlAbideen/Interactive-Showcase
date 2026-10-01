@@ -16,6 +16,7 @@ import { FX } from './fx.js';
 import { UI } from './ui.js';
 import { ArenaAudio } from './audio.js';
 import { buildDugout } from './dugout.js';
+import { buildScreens } from './screens.js';
 import { Academy } from './academy/academy.js';
 
 const DEBUG = new URLSearchParams(location.search).has('debug');
@@ -25,6 +26,7 @@ const DEBUG = new URLSearchParams(location.search).has('debug');
 await Promise.all([
   document.fonts.load('italic 700 64px "Chakra Petch"'),
   document.fonts.load('900 64px "Orbitron"'),
+  document.fonts.load('32px "Press Start 2P"'),
 ]).catch(() => {});
 
 // ── renderer ──
@@ -65,6 +67,7 @@ const { ball, marker } = buildBall();
 scene.add(ball, marker);
 const pods = buildPodiums(scene, PODIUMS);
 const dugout = buildDugout(scene);
+const screens = buildScreens(scene);
 const academy = new Academy();
 // everything the car can press E at: the podiums plus the dugout's technical area
 const spots = [...pods, dugout.spot];
@@ -244,6 +247,7 @@ function frame() {
   if (state === 'play' && !busy) ui.setPrompt(nearPod?.data);
   updatePodiums(pods, t, dt, nearPod?.data.id);
   dugout.update(t, nearPod?.data.id === 'academy' ? 1 : 0);
+  if (!academy.isOpen) screens.update(dt);
   ui.setBoost(c.boost);
 
   fx.update(dt);
