@@ -1,28 +1,14 @@
 // ─────────────────────────────────────────────────────────────
-//  Stadium screens above each end.
-//  Main screen (the end you face at kick-off): types "Welcome to My World !!!"
-//  next to the retro portrait. Small screen (the other end): cycles tips.
-//  Both are canvases redrawn only when a new character appears.
+//  Stadium screen above the end you face at kick-off.
+//  Types "Welcome to My World !" next to the retro portrait and shows
+//  the goals count. A canvas, redrawn only when something on it changes.
 // ─────────────────────────────────────────────────────────────
 import * as THREE from 'three';
 import { FIELD } from './arena.js';
 
 const PIXEL = '"Press Start 2P", "Orbitron", monospace';
 
-export const MAIN_LINES = {
-  title: 'Welcome to My World !!!',
-  sub: 'Muhammad Zain-ul-Abideen · AI Full Stack Engineer',
-};
-
-export const TIPS = [
-  'Think you can beat my AI puzzles? Head to My Academy in the dugout.',
-  'See what production AI looks like on the Projects podium.',
-  'My full-stack toolkit lives on the Stack podium.',
-  'Curious how this arena began? Find the Vision podium.',
-  'Press E at any glowing podium to open it.',
-  'Off the clock? Visit Life Uncoded.',
-  'Line it up, hit boost, and put one in the net.',
-];
+export const MAIN_TITLE = 'Welcome to My World !';
 
 function makeScreen(scene, { w, h, px, x, y, z, rotY, color }) {
   const canvas = document.createElement('canvas');
@@ -84,106 +70,86 @@ export function buildScreens(scene) {
   const { halfX } = FIELD;
   const back = halfX + FIELD.goalDepth + 2 + 1.2 + 10 * 2.2 + 3; // behind the end stands
 
-  // ── main screen: the +x end (what you see at kick-off) ──
-  const main = makeScreen(scene, { w: 46, h: 13, px: 1840, x: back, y: 24, z: 0, rotY: -Math.PI / 2, color: 0xff7a1a });
+  // the +x end: what you see at kick-off
+  const main = makeScreen(scene, { w: 54, h: 19, px: 2000, x: back, y: 27, z: 0, rotY: -Math.PI / 2, color: 0xff7a1a });
   const portrait = new Image();
   portrait.src = 'assets/life/zain-retro.png';
 
-  // ── small screen: the -x end ──
-  const tips = makeScreen(scene, { w: 30, h: 6, px: 1500, x: -back, y: 21, z: 0, rotY: Math.PI / 2, color: 0x2f7bff });
+  const seq = { i: 0, t: 0, hold: 0 };
+  let goals = 0, flash = 0, last = '', blink = 0;
 
-  // typewriter state
-  const mainSeq = { phase: 'title', i: 0, t: 0, hold: 0 };
-  const tipSeq = { idx: 0, i: 0, t: 0, hold: 0, erase: false };
-  let lastMain = '', lastTip = '', blink = 0;
-
-  function drawMain(titleN, subN, cursorOn) {
+  function draw(n, cursorOn) {
     const { ctx, canvas: { width: W, height: H } } = main;
     backdrop(ctx, W, H, '#ff7a1a');
-    // portrait on the right
-    const ph = H - 40, pw = portrait.complete && portrait.naturalWidth ? ph * portrait.naturalWidth / portrait.naturalHeight : 0;
-    const px = W - pw - 60;
-    if (pw) {
-      const glow = ctx.createRadialGradient(px + pw / 2, H * 0.55, 10, px + pw / 2, H * 0.55, ph * 0.7);
-      glow.addColorStop(0, 'rgba(255,122,26,.25)'); glow.addColorStop(1, 'rgba(255,122,26,0)');
-      ctx.fillStyle = glow; ctx.fillRect(px - 80, 0, pw + 160, H);
-      ctx.drawImage(portrait, px, 30, pw, ph);
-    }
-    // text on the left
-    const left = 70, maxW = (pw ? px : W) - left - 50;
-    ctx.textBaseline = 'top';
-    ctx.font = `64px ${PIXEL}`;
-    const title = MAIN_LINES.title.slice(0, titleN);
-    const tl = wrap(ctx, title, maxW);
-    let y = 120;
-    ctx.shadowColor = '#ffb347'; ctx.shadowBlur = 18;
-    ctx.fillStyle = '#ffd27a';
-    tl.forEach((l, k) => { ctx.fillText(l, left, y + k * 88); });
-    const lastLine = tl[tl.length - 1] || '';
-    const cx = left + ctx.measureText(lastLine).width + 10, cy = y + (tl.length - 1 || 0) * 88;
-    y += tl.length * 88 + 40;
-    ctx.shadowBlur = 0;
-    ctx.font = `26px ${PIXEL}`;
-    ctx.fillStyle = '#9fc4ff';
-    const sl = wrap(ctx, MAIN_LINES.sub.slice(0, subN), maxW);
-    sl.forEach((l, k) => ctx.fillText(l, left, y + k * 40));
-    if (cursorOn) {
-      ctx.fillStyle = '#ffd27a';
-      if (subN > 0) { const last = sl[sl.length - 1] || ''; ctx.fillRect(left + ctx.measureText(last).width + 8, y + (sl.length - 1) * 40, 18, 28); }
-      else ctx.fillRect(cx, cy, 34, 62);
-    }
-    main.tex.needsUpdate = true;
-  }
 
-  function drawTip(text, cursorOn) {
-    const { ctx, canvas: { width: W, height: H } } = tips;
-    backdrop(ctx, W, H, '#2f7bff');
-    ctx.textBaseline = 'middle';
-    ctx.font = `20px ${PIXEL}`;
-    ctx.fillStyle = '#7fb3ff';
-    ctx.fillText('TIP', 50, 52);
-    ctx.font = `34px ${PIXEL}`;
-    ctx.shadowColor = '#5aa0ff'; ctx.shadowBlur = 14;
-    ctx.fillStyle = '#e6f0ff';
-    const lines = wrap(ctx, text, W - 120);
-    const lh = 54, top = H / 2 - ((lines.length - 1) * lh) / 2 + 16;
-    lines.forEach((l, k) => ctx.fillText(l, 50, top + k * lh));
+    // portrait: right side, full height, standing on the bottom edge
+    const ok = portrait.complete && portrait.naturalWidth;
+    const ph = H - 24, pw = ok ? ph * portrait.naturalWidth / portrait.naturalHeight : 0;
+    const px = W - pw - 50;
+    if (ok) {
+      const glow = ctx.createRadialGradient(px + pw / 2, H * 0.5, 20, px + pw / 2, H * 0.5, ph * 0.75);
+      glow.addColorStop(0, 'rgba(255,122,26,.3)'); glow.addColorStop(1, 'rgba(255,122,26,0)');
+      ctx.fillStyle = glow; ctx.fillRect(px - 120, 0, pw + 240, H);
+      ctx.drawImage(portrait, px, H - ph, pw, ph);
+    }
+
+    const left = 80, maxW = (ok ? px : W) - left - 60;
+
+    // title
+    ctx.textBaseline = 'top';
+    ctx.font = `92px ${PIXEL}`;
+    const lines = wrap(ctx, MAIN_TITLE.slice(0, n), maxW);
+    const lh = 126, top = 100;
+    ctx.shadowColor = '#ffb347'; ctx.shadowBlur = 22;
+    ctx.fillStyle = '#ffd27a';
+    lines.forEach((l, k) => ctx.fillText(l, left, top + k * lh));
     ctx.shadowBlur = 0;
     if (cursorOn) {
-      const last = lines[lines.length - 1] || '';
-      ctx.fillStyle = '#e6f0ff';
-      ctx.fillRect(50 + ctx.measureText(last).width + 8, top + (lines.length - 1) * lh - 18, 18, 34);
+      const lastLine = lines[lines.length - 1] || '';
+      ctx.fillRect(left + ctx.measureText(lastLine).width + 12, top + (lines.length - 1) * lh, 48, 90);
     }
-    tips.tex.needsUpdate = true;
+
+    // goals counter, scoreboard style
+    const bx = left, by = H - 250, bh = 170;
+    ctx.font = `52px ${PIXEL}`;
+    const label = 'GOALS', lw = ctx.measureText(label).width + 80;
+    ctx.fillStyle = 'rgba(12,18,52,.95)';
+    ctx.fillRect(bx, by, lw, bh);
+    ctx.strokeStyle = '#3d5bd6'; ctx.lineWidth = 4; ctx.strokeRect(bx, by, lw, bh);
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#dfe6ff';
+    ctx.fillText(label, bx + 40, by + bh / 2 + 4);
+    // number box
+    ctx.font = `110px ${PIXEL}`;
+    const num = String(goals), nw = Math.max(220, ctx.measureText(num).width + 80);
+    const hot = flash > 0 && Math.floor(flash * 6) % 2 === 0;
+    ctx.fillStyle = hot ? '#ff7a1a' : '#2f6bff';
+    ctx.fillRect(bx + lw, by, nw, bh);
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#ffffff'; ctx.shadowBlur = hot ? 26 : 10;
+    ctx.textAlign = 'center';
+    ctx.fillText(num, bx + lw + nw / 2, by + bh / 2 + 6);
+    ctx.textAlign = 'left'; ctx.shadowBlur = 0;
+
+    main.tex.needsUpdate = true;
   }
 
   function update(dt) {
     blink += dt;
     const cursorOn = Math.floor(blink * 2.2) % 2 === 0;
+    if (flash > 0) flash = Math.max(0, flash - dt);
 
-    // main: type title, type subtitle, hold, wipe, repeat
-    const m = mainSeq;
-    m.t += dt;
-    if (m.phase === 'title' && m.t > 0.09) { m.t = 0; m.i++; if (m.i >= MAIN_LINES.title.length) { m.phase = 'sub'; m.i = 0; m.hold = 0.6; } }
-    else if (m.phase === 'sub') {
-      if (m.hold > 0) m.hold -= dt;
-      else if (m.t > 0.04) { m.t = 0; m.i++; if (m.i >= MAIN_LINES.sub.length) { m.phase = 'hold'; m.hold = 7; } }
-    } else if (m.phase === 'hold') { m.hold -= dt; if (m.hold <= 0) { m.phase = 'title'; m.i = 0; } }
-    const titleN = m.phase === 'title' ? m.i : MAIN_LINES.title.length;
-    const subN = m.phase === 'sub' ? m.i : m.phase === 'hold' ? MAIN_LINES.sub.length : 0;
-    const keyM = `${titleN}|${subN}|${cursorOn}|${portrait.complete}`;
-    if (keyM !== lastMain) { lastMain = keyM; drawMain(titleN, subN, cursorOn); }
+    // type the title, hold, then type it again
+    seq.t += dt;
+    if (seq.hold > 0) { seq.hold -= dt; if (seq.hold <= 0) seq.i = 0; }
+    else if (seq.t > 0.1) { seq.t = 0; seq.i++; if (seq.i >= MAIN_TITLE.length) seq.hold = 8; }
+    const n = Math.min(seq.i, MAIN_TITLE.length);
 
-    // tips: type, hold, erase, next
-    const s = tipSeq;
-    const tip = TIPS[s.idx];
-    s.t += dt;
-    if (s.hold > 0) { s.hold -= dt; if (s.hold <= 0) s.erase = true; }
-    else if (s.erase) { if (s.t > 0.012) { s.t = 0; s.i = Math.max(0, s.i - 2); if (s.i === 0) { s.erase = false; s.idx = (s.idx + 1) % TIPS.length; } } }
-    else if (s.t > 0.045) { s.t = 0; s.i++; if (s.i >= tip.length) s.hold = 3.2; }
-    const keyT = `${s.idx}|${s.i}|${cursorOn}`;
-    if (keyT !== lastTip) { lastTip = keyT; drawTip(TIPS[s.idx].slice(0, s.i), cursorOn); }
+    const key = `${n}|${cursorOn}|${goals}|${flash > 0 ? Math.floor(flash * 6) : -1}|${portrait.complete}`;
+    if (key !== last) { last = key; draw(n, cursorOn); }
   }
 
-  return { update };
+  function setGoals(g) { goals = g; flash = 2.4; }
+
+  return { update, setGoals };
 }

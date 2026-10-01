@@ -56,6 +56,7 @@ export class UI {
 
   setScore(goals) {
     const n = $('score-goals');
+    if (!n) return;
     n.textContent = goals;
     n.classList.remove('is-bump');
     void n.offsetWidth;

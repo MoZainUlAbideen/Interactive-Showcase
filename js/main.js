@@ -85,6 +85,7 @@ const physics = new Physics(pods, {
   onGoal(goalSide, pos) {
     goals++;
     ui.setScore(goals);
+    screens.setGoals(goals);
     ui.goal(goalSide);
     fx.goal(pos, goalSide === 'orange' ? TEAM.orange : TEAM.blue);
     audio.goal();
@@ -258,4 +259,4 @@ function frame() {
 }
 requestAnimationFrame(frame);
 
-if (DEBUG) Object.assign(window, { physics, camera, scene, ui, pods, audio, academy, dugout, THREE, setState: (s) => (state = s), keys });
+if (DEBUG) Object.assign(window, { physics, camera, scene, ui, pods, audio, academy, dugout, screens, THREE, setState: (s) => (state = s), keys });
