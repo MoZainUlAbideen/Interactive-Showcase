@@ -4,6 +4,7 @@
 //  Car faces +z. Ground is y = 0. Length ≈ 5, width ≈ 3.2 (with rollers).
 // ─────────────────────────────────────────────────────────────
 import * as THREE from 'three';
+import { mergeStatic } from './merge.js';
 
 export const CAR_DIMS = {
   wheelR: 0.5,
@@ -267,6 +268,7 @@ export function buildCar() {
   // ── rollers (silver discs, spin around a vertical axis) ──
   const roller = (x, y, z) => {
     const r = new THREE.Group();
+    r.userData.dynamic = true; // spins
     r.position.set(x, y, z);
     add(new THREE.CylinderGeometry(0.25, 0.25, 0.16, 24), silver, 0, 0, 0, r);
     add(new THREE.TorusGeometry(0.25, 0.035, 8, 24), rollerRing, 0, 0.0, 0, r).rotation.x = Math.PI / 2;
@@ -291,6 +293,7 @@ export function buildCar() {
     pivot.position.set(side * track, wheelR, z);
     const spin = new THREE.Group();   // rolls (x)
     pivot.add(spin);
+    pivot.userData.dynamic = spin.userData.dynamic = true; // steers / rolls
     const t = add(new THREE.CylinderGeometry(wheelR, wheelR, 0.42, 36), tyre, 0, 0, 0, spin);
     t.rotation.z = Math.PI / 2;
     // tread grooves
@@ -339,6 +342,7 @@ export function buildCar() {
     flames.add(outer, inner);
   }
   flames.visible = false;
+  flames.userData.dynamic = true;
   car.add(flames);
 
   // soft under-glow so the car pops at night
@@ -346,5 +350,6 @@ export function buildCar() {
   glow.position.set(0, 0.4, 0);
   car.add(glow);
 
+  mergeStatic(car); // ~200 parts → a handful of draw calls
   return { group: car, wheels, rollers, flames };
 }

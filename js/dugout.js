@@ -4,6 +4,7 @@
 //  Drive into the glowing technical area in front and press E.
 // ─────────────────────────────────────────────────────────────
 import * as THREE from 'three';
+import { mergeStatic } from './merge.js';
 import { FIELD, DUGOUT } from './arena.js';
 
 export const ACADEMY_COLOR = '#38f2c7';
@@ -172,6 +173,7 @@ export function buildDugout(scene) {
   const area = new THREE.Group();
   const w = halfW * 2 + 2, depthA = 5;
   const dashMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85 });
+  dashMat.userData.unique = true; // animated, never share it
   const dash = (x, z, lx, lz) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(lx, lz), dashMat); m.rotation.x = -Math.PI / 2; m.position.set(x, 0.035, z); area.add(m); };
   for (let t = -w / 2; t < w / 2; t += 1.4) dash(cx + t + 0.45, -halfZ + depthA, 0.9, 0.22);
   for (const s of [-1, 1]) for (let t = 0; t < depthA; t += 1.4) dash(cx + s * w / 2, -halfZ + t + 0.45, 0.22, 0.9);
@@ -185,6 +187,7 @@ export function buildDugout(scene) {
   const emblem = buildEmblem(color);
   emblem.position.set(cx, h + 6.6, zc + 0.5);
   emblem.scale.setScalar(0.95);
+  emblem.userData.dynamic = true; // floats and turns
   d.add(emblem);
   const title = new THREE.Sprite(new THREE.SpriteMaterial({ map: titleTexture('MY ACADEMY', ACADEMY_COLOR), transparent: true, depthWrite: false }));
   title.scale.set(13, 3.25, 1);
@@ -195,6 +198,7 @@ export function buildDugout(scene) {
   beamLight.position.set(cx, h + 5, zc + 2);
   d.add(beamLight);
 
+  mergeStatic(d); // benches, players, roof: one draw call per material
   scene.add(d);
 
   // where the car has to be to press E (centre of the technical area)
@@ -208,7 +212,6 @@ export function buildDugout(scene) {
     emblem.position.y = h + 6.6 + Math.sin(t * 1.2) * 0.25;
     dashMat.opacity = 0.55 + 0.3 * (0.5 + 0.5 * Math.sin(t * 3)) + 0.15 * near;
     beamLight.intensity = 10 + 8 * near;
-    for (const p of players) p.userData.head.rotation.y = p.userData.hair.rotation.y = Math.sin(t * 0.5 + p.userData.phase) * 0.5;
   }
   return { spot, update };
 }

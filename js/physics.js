@@ -32,6 +32,9 @@ export class Physics {
     };
     this.ball = { pos: SPAWN.ball.clone(), vel: new THREE.Vector3(), quat: new THREE.Quaternion() };
     this.acc = 0;
+    this.prev = { carPos: new THREE.Vector3(), carYaw: 0, ballPos: new THREE.Vector3(), ballQuat: new THREE.Quaternion() };
+    this.render = { carPos: new THREE.Vector3(), carYaw: 0, ballPos: new THREE.Vector3(), ballQuat: new THREE.Quaternion() };
+    this.snapshot(); this.interpolate();
     this.goalLock = false;
     this.resetTimer = 0;
     this.hitCooldown = 0;
@@ -41,21 +44,43 @@ export class Physics {
     this.ball.pos.copy(SPAWN.ball);
     this.ball.vel.set(0, 0, 0);
     this.goalLock = false;
+    this.prev.ballPos.copy(this.ball.pos);
   }
 
   resetCar() {
     const c = this.car;
     c.pos.copy(SPAWN.car); c.vel.set(0, 0, 0); c.yaw = SPAWN.yaw; c.boost = 100;
+    this.prev.carPos.copy(c.pos); this.prev.carYaw = c.yaw;
+  }
+
+  // Positions to DRAW this frame: blended between the last two physics steps.
+  // Without this, a 60/144 Hz screen sees 0, 1 or 2+ steps per frame and the
+  // car jitters slightly even when the frame rate is fine.
+  snapshot() {
+    this.prev.carPos.copy(this.car.pos); this.prev.carYaw = this.car.yaw;
+    this.prev.ballPos.copy(this.ball.pos); this.prev.ballQuat.copy(this.ball.quat);
+  }
+
+  interpolate() {
+    const a = this.acc / H, p = this.prev, r = this.render;
+    r.carPos.lerpVectors(p.carPos, this.car.pos, a);
+    let d = this.car.yaw - p.carYaw;
+    d = Math.atan2(Math.sin(d), Math.cos(d));
+    r.carYaw = p.carYaw + d * a;
+    r.ballPos.lerpVectors(p.ballPos, this.ball.pos, a);
+    r.ballQuat.slerpQuaternions(p.ballQuat, this.ball.quat, a);
   }
 
   step(dt, input) {
     this.acc += Math.min(dt, 0.1);
     while (this.acc >= H) {
+      this.snapshot();
       this.stepCar(input);
       this.stepBall();
       this.collideCarBall();
       this.acc -= H;
     }
+    this.interpolate();
     if (this.resetTimer > 0) {
       this.resetTimer -= dt;
       if (this.resetTimer <= 0) this.resetBall();

@@ -16,6 +16,7 @@ import { FX } from './fx.js';
 import { UI } from './ui.js';
 import { ArenaAudio } from './audio.js';
 import { buildDugout } from './dugout.js';
+import { mergeStatic } from './merge.js';
 import { buildScreens } from './screens.js';
 import { Academy } from './academy/academy.js';
 
@@ -31,8 +32,15 @@ await Promise.all([
 
 // ── renderer ──
 const canvas = document.getElementById('scene');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); // 1.5 keeps integrated GPUs smooth
+// antialias off: the bloom pipeline renders into its own (non-MSAA) buffers anyway,
+// so canvas MSAA only cost memory bandwidth without smoothing anything
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+// Resolution: never more than ~2.4M rendered pixels (a 1080p screen at 1.15x),
+// and `quality` drops a notch automatically if the frame rate sags (see loop).
+const PIXEL_BUDGET = 2.4e6;
+let quality = 1;
+const pixelRatio = () => Math.max(0.6, Math.min(devicePixelRatio, 1.5, Math.sqrt(PIXEL_BUDGET / (innerWidth * innerHeight))) * quality);
+renderer.setPixelRatio(pixelRatio());
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -52,15 +60,41 @@ const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
-addEventListener('resize', () => {
+function applySize() {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
+  const pr = pixelRatio();
+  renderer.setPixelRatio(pr);
+  composer.setPixelRatio(pr);
   renderer.setSize(innerWidth, innerHeight);
   composer.setSize(innerWidth, innerHeight);
-});
+}
+addEventListener('resize', applySize);
+
+// adaptive quality: if frames average slower than ~50 fps for 2 s while driving,
+// render at a slightly lower resolution (down to 70%). Never goes back up mid-session,
+// so it can't flicker between two settings.
+const perf = { t: 0, frames: 0, warm: 0 };
+function watchFrameRate(dt, active) {
+  if (!active || document.hidden || dt > 0.25) { perf.t = perf.frames = 0; return; } // skip pauses and tab switches
+  if ((perf.warm += dt) < 3) return; // ignore shader warm-up
+  perf.t += dt; perf.frames++;
+  if (perf.t < 2) return;
+  const avg = perf.t / perf.frames;
+  perf.t = perf.frames = 0;
+  if (avg > 1 / 50 && quality > 0.7) { quality = Math.max(0.7, quality - 0.15); applySize(); }
+}
 
 // ── world ──
-buildArena(scene);
+// everything the arena builds is static: gather its meshes and merge them
+{
+  const before = new Set(scene.children);
+  buildArena(scene);
+  const arenaStatic = new THREE.Group();
+  for (const o of [...scene.children]) if (!before.has(o) && (o.isMesh || o.isGroup)) arenaStatic.add(o);
+  scene.add(arenaStatic);
+  mergeStatic(arenaStatic);
+}
 const car = buildCar();
 scene.add(car.group);
 const { ball, marker } = buildBall();
@@ -174,7 +208,9 @@ let camYaw = SPAWN.yaw;
 camera.position.set(-24, 5, -9);
 
 function updateCamera(dt, t) {
-  const c = physics.car, b = physics.ball;
+  // follow the smoothed (interpolated) positions, not the raw physics ones
+  const r = physics.render;
+  const c = { pos: r.carPos, yaw: r.carYaw }, b = { pos: r.ballPos };
   const offset = 0; // splash content is centred, so the car orbits dead centre behind it
   if (offset) camera.setViewOffset(innerWidth, innerHeight, offset, 0, innerWidth, innerHeight);
   else if (camera.view?.enabled) camera.clearViewOffset();
@@ -226,7 +262,8 @@ camLook.set(SPAWN.car.x, 1, SPAWN.car.z);
 let nearPod = null;
 const clock = new THREE.Clock();
 function frame() {
-  const dt = Math.min(clock.getDelta(), 0.05);
+  const rawDt = clock.getDelta();
+  const dt = Math.min(rawDt, 0.05);
   const t = clock.elapsedTime;
   const busy = ui.panelOpen || academy.isOpen;
   const input = state === 'play' && !busy ? readInput() : IDLE;
@@ -234,8 +271,8 @@ function frame() {
 
   // car visuals
   const c = physics.car;
-  car.group.position.copy(c.pos);
-  car.group.rotation.y = c.yaw;
+  car.group.position.copy(physics.render.carPos);
+  car.group.rotation.y = physics.render.carYaw;
   car.group.rotation.x = c.onGround ? 0 : THREE.MathUtils.clamp(-c.vel.y * 0.012, -0.2, 0.2);
   for (const w of car.wheels) {
     w.spin.rotation.x = c.roll;
@@ -255,9 +292,9 @@ function frame() {
 
   // ball visuals
   const b = physics.ball;
-  ball.position.copy(b.pos);
-  ball.quaternion.copy(b.quat);
-  marker.position.set(b.pos.x, 0.04, b.pos.z);
+  ball.position.copy(physics.render.ballPos);
+  ball.quaternion.copy(physics.render.ballQuat);
+  marker.position.set(ball.position.x, 0.04, ball.position.z);
   marker.material.opacity = THREE.MathUtils.clamp((b.pos.y - FIELD.ballR - 0.5) / 6, 0, 0.5);
 
   // nearest podium in reach
@@ -277,8 +314,9 @@ function frame() {
   if (!window.freezeCam) updateCamera(dt, t);
   // the academy covers the whole screen, so skip drawing the arena behind it (saves the GPU)
   if (!academy.isOpen) composer.render();
+  watchFrameRate(rawDt, state === 'play' && !busy);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 
-if (DEBUG) Object.assign(window, { physics, camera, scene, ui, pods, audio, academy, dugout, screens, THREE, setState: (s) => (state = s), keys });
+if (DEBUG) Object.assign(window, { quality: () => quality, physics, camera, scene, renderer, composer, bloom, ui, pods, audio, academy, dugout, screens, THREE, setState: (s) => (state = s), keys });
