@@ -17,6 +17,7 @@ import { UI } from './ui.js';
 import { ArenaAudio } from './audio.js';
 import { buildDugout } from './dugout.js';
 import { mergeStatic } from './merge.js';
+import { buildTouchControls, isTouch } from './touch.js';
 import { buildScreens } from './screens.js';
 import { Academy } from './academy/academy.js';
 
@@ -37,7 +38,9 @@ const canvas = document.getElementById('scene');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
 // Resolution: never more than ~2.4M rendered pixels (a 1080p screen at 1.15x),
 // and `quality` drops a notch automatically if the frame rate sags (see loop).
-const PIXEL_BUDGET = 2.4e6;
+const TOUCH = isTouch();
+if (TOUCH) document.documentElement.classList.add('is-touch');
+const PIXEL_BUDGET = TOUCH ? 1.1e6 : 2.4e6; // phones: fewer pixels, their GPUs are smaller
 let quality = 1;
 const pixelRatio = () => Math.max(0.6, Math.min(devicePixelRatio, 1.5, Math.sqrt(PIXEL_BUDGET / (innerWidth * innerHeight))) * quality);
 renderer.setPixelRatio(pixelRatio());
@@ -94,6 +97,8 @@ function watchFrameRate(dt, active) {
   for (const o of [...scene.children]) if (!before.has(o) && (o.isMesh || o.isGroup)) arenaStatic.add(o);
   scene.add(arenaStatic);
   mergeStatic(arenaStatic);
+  // phones: a smaller shadow map is plenty on a small screen
+  if (TOUCH) arenaStatic.parent.traverse((o) => { if (o.isDirectionalLight && o.castShadow) o.shadow.mapSize.set(1024, 1024); });
 }
 const car = buildCar();
 scene.add(car.group);
@@ -125,6 +130,8 @@ function toggleFullscreen() {
       ? (document.exitFullscreen || document.webkitExitFullscreen).call(document)
       : (root.requestFullscreen || root.webkitRequestFullscreen).call(root);
     if (r && r.catch) r.catch(() => {});
+    // phones: going full screen also turns the view sideways where the browser allows it
+    if (TOUCH && !fsElement() && r && r.then) r.then(() => screen.orientation?.lock?.('landscape').catch(() => {}));
   } catch {}
 }
 const showFs = () => { const on = !!fsElement(); fsBtn.querySelector('span').textContent = on ? 'Exit full screen' : 'Full screen'; fsBtn.setAttribute('aria-pressed', String(on)); };
@@ -163,26 +170,41 @@ addEventListener('keydown', (e) => {
   if (GAME_KEYS.includes(e.code)) e.preventDefault();
   keys.add(e.code);
   if (e.repeat) return;
-  if (e.code === 'KeyE' && nearPod) {
-    keys.clear();
-    if (nearPod.data.id === 'academy') { ui.setPrompt(null); academy.open(); } else ui.open(nearPod.data);
-  }
-  if (e.code === 'KeyC') { ballCam = !ballCam; ui.setBallCam(ballCam); }
-  if (e.code === 'KeyR') { physics.resetCar(); physics.resetBall(); }
+  if (e.code === 'KeyE') openNear();
+  if (e.code === 'KeyC') toggleBallCam();
+  if (e.code === 'KeyR') resetPlay();
   if (e.code === 'KeyM') { audio.toggleMute(); showMute(); }
   if (e.code === 'KeyF') toggleFullscreen();
   if (e.code === "KeyH") document.getElementById('help').classList.toggle('is-hidden');
 });
 addEventListener('keyup', (e) => keys.delete(e.code));
-addEventListener('blur', () => keys.clear());
+addEventListener('blur', () => { keys.clear(); touch?.release(); });
+
+function openNear() {
+  if (!nearPod || state !== 'play' || ui.panelOpen || academy.isOpen) return;
+  keys.clear(); touch?.release();
+  if (nearPod.data.id === 'academy') { ui.setPrompt(null); academy.open(); } else ui.open(nearPod.data);
+}
+function toggleBallCam() { ballCam = !ballCam; ui.setBallCam(ballCam); touch?.el.querySelector('[data-act="cam"]').classList.toggle('is-on', ballCam); }
+function resetPlay() { physics.resetCar(); physics.resetBall(); }
+
+// the "Open ..." prompt is also a button (tap on phones, click on desktop)
+document.getElementById('prompt').addEventListener('click', openNear);
+
+// phones and tablets: on-screen joystick + buttons
+const touch = TOUCH ? buildTouchControls(document.getElementById('hud'), { onCam: toggleBallCam, onReset: resetPlay }) : null;
+if (TOUCH) document.querySelector('#prompt kbd').textContent = 'Tap';
 
 function readInput() {
   const k = (...c) => c.some((x) => keys.has(x));
+  const t = touch ? touch.state : IDLE;
+  const throttle = (k('KeyW', 'ArrowUp') ? 1 : 0) - (k('KeyS', 'ArrowDown') ? 1 : 0);
+  const steer = (k('KeyA', 'ArrowLeft') ? 1 : 0) - (k('KeyD', 'ArrowRight') ? 1 : 0);
   return {
-    throttle: (k('KeyW', 'ArrowUp') ? 1 : 0) - (k('KeyS', 'ArrowDown') ? 1 : 0),
-    steer: (k('KeyA', 'ArrowLeft') ? 1 : 0) - (k('KeyD', 'ArrowRight') ? 1 : 0),
-    boost: k('ShiftLeft', 'ShiftRight'),
-    jump: k('Space'),
+    throttle: throttle || t.throttle,
+    steer: steer || t.steer,
+    boost: k('ShiftLeft', 'ShiftRight') || t.boost,
+    jump: k('Space') || t.jump,
   };
 }
 const IDLE = { throttle: 0, steer: 0, boost: false, jump: false };
@@ -251,7 +273,9 @@ function updateCamera(dt, t) {
     shake = Math.max(0, shake - dt * 1.5);
   }
   camera.lookAt(camLook);
-  const targetFov = physics.car.boosting ? 80 : 70;
+  // 70° tall on a landscape screen; on a tall phone, widen it so you still see the sides
+  const baseFov = camera.aspect >= 1.2 ? 70 : Math.min(100, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(46)) / camera.aspect)));
+  const targetFov = baseFov + (physics.car.boosting ? 10 : 0);
   camera.fov += (targetFov - camera.fov) * (1 - Math.exp(-4 * dt));
   camera.updateProjectionMatrix();
 }
@@ -261,12 +285,14 @@ camLook.set(SPAWN.car.x, 1, SPAWN.car.z);
 // ── loop ──
 let nearPod = null;
 const clock = new THREE.Clock();
+let touchBusy = false;
 function frame() {
   const rawDt = clock.getDelta();
   const dt = Math.min(rawDt, 0.05);
   const t = clock.elapsedTime;
   const busy = ui.panelOpen || academy.isOpen;
   const input = state === 'play' && !busy ? readInput() : IDLE;
+  if (touch && busy !== touchBusy) { touchBusy = busy; touch.el.classList.toggle('is-hidden', busy); if (busy) touch.release(); }
   physics.step(dt, input);
 
   // car visuals
