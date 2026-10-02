@@ -101,7 +101,13 @@ export class UI {
         el('ul', { class: 'bullets' }, x.points.map((b) => el('li', {}, b))),
       ))));
     }
-    if (p.skills) {
+    if (p.lede) body.append(el('p', { class: 'lede' }, p.lede));
+    if (p.skills && p.lab) {
+      body.append(el('div', { class: 'lab' }, p.skills.map(([group, list], i) => el('section', { class: `lab__group lab__group--${i % 5}` },
+        el('h3', { class: 'lab__title' }, group),
+        el('ul', { class: 'lab__chips' }, list.map((t) => el('li', {}, t))),
+      ))));
+    } else if (p.skills) {
       body.append(el('div', { class: 'skills' }, p.skills.map(([group, list]) => el('div', { class: 'skills__row' },
         el('p', { class: 'skills__group' }, group),
         el('ul', { class: 'chips' }, list.map((t) => el('li', {}, t))),
@@ -154,6 +160,7 @@ export class UI {
     }
 
     this.card.classList.toggle('panel__card--wide', !!(p.items || p.experience || p.skills || p.life || p.vision));
+    this.card.classList.toggle('panel__card--lab', !!p.lab);
     this.card.scrollTop = 0;
     this.panel.hidden = false;
     this.panelOpen = true;

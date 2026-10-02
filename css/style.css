@@ -695,3 +695,28 @@ kbd {
 
 /* the panel footer talks about the Esc key; phones close with the × instead */
 .is-touch .panel__foot { display: none; }
+
+/* ───────── Stack: "lab" layout (terminal look, colour-coded chips) ───────── */
+.panel__card--lab { --mono: "JetBrains Mono", ui-monospace, monospace; background: linear-gradient(170deg, rgba(14, 19, 44, .97), rgba(7, 10, 26, .98)); }
+.panel__card--lab .panel__kicker { display: none; }
+.panel__card--lab .panel__title {
+  margin: 0 0 6px; font: 500 clamp(26px, 4vw, 32px)/1.1 var(--mono);
+  text-transform: none; font-style: normal; letter-spacing: -.01em; color: #2ee6c5;
+}
+.lede { margin: 0 0 22px !important; font-size: 15px; color: #8b93b0; }
+.lab { display: grid; gap: 20px; }
+.lab__title { margin: 0 0 10px; font: 400 15px/1 var(--mono); letter-spacing: .02em; color: #8b93b0; }
+.lab__chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.lab__chips li {
+  padding: 6px 10px; border-radius: 4px;
+  font: 600 12.5px/1.2 var(--mono); color: var(--c);
+  background: color-mix(in srgb, var(--c) 6%, rgba(12, 16, 36, .9));
+  border: 1px solid color-mix(in srgb, var(--c) 30%, rgba(255, 255, 255, .08));
+  transition: border-color .15s, background .15s;
+}
+.lab__chips li:hover { border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, rgba(12, 16, 36, .9)); }
+.lab__group--0 { --c: #22d3ee; }
+.lab__group--1 { --c: #2ee6a8; }
+.lab__group--2 { --c: #f2c94c; }
+.lab__group--3 { --c: #a78bfa; }
+.lab__group--4 { --c: #fb7fb8; }

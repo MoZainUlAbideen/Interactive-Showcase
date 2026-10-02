@@ -163,13 +163,15 @@ export const PODIUMS = [
   {
     id: 'stack', kind: 'stack', label: 'STACK', x: -50, z: -32, color: '#a78bfa',
     panel: {
-      kicker: 'What I build with',
+      lab: true, // terminal-style layout: grouped, colour-coded chips
       title: 'Stack',
+      lede: 'Every layer from model to production. Every tool I ship with.',
       skills: [
-        ['LLM & Agentic AI', ['RAG', 'Hybrid search (BM25, RRF)', 'Multi-agent systems', 'LLM-as-judge evals', 'LangChain', 'Gemini', 'Groq', 'Ollama', 'FAISS', 'ChromaDB', 'Langfuse']],
-        ['Machine Learning', ['Scikit-learn', 'PyTorch', 'TensorFlow', 'Keras', 'Ensembles', 'Feature engineering', 'NumPy', 'Pandas']],
-        ['Full Stack', ['Python', 'FastAPI', 'Next.js', 'JavaScript', 'MERN', 'SQL', 'SQLAlchemy']],
-        ['DevOps & Cloud', ['Docker', 'GitHub Actions', 'CI/CD', 'Testing', 'Vercel', 'Render', 'Azure', 'Google Cloud']],
+        ['LLM & Agentic AI', ['RAG', 'Agentic Workflows', 'Multi-Agent Systems', 'Prompt & Evaluation Design (LLM-as-Judge)', 'Hybrid Search (BM25, RRF)', 'Vector Databases (FAISS, ChromaDB)', 'LangChain', 'Gemini API', 'Groq', 'Ollama', 'Langfuse']],
+        ['NLP', ['Embeddings (Sentence Transformers, bge-small)', 'Tokenization', 'Information Extraction', 'Transformers']],
+        ['Machine Learning', ['PyTorch', 'Keras', 'TensorFlow', 'Scikit-learn', 'Supervised & Unsupervised Learning', 'Ensembles', 'Feature Engineering', 'Pandas']],
+        ['Backend & APIs', ['Python', 'FastAPI', 'REST APIs', 'Inference Pipelines', 'SQL', 'SQLAlchemy', 'Next.js', 'Playwright']],
+        ['MLOps & Cloud', ['Docker', 'GitHub Actions', 'CI/CD', 'Testing (pytest)', 'Git', 'Microsoft Azure', 'Google Cloud', 'Render']],
       ],
     },
   },
@@ -251,6 +253,7 @@ export const PODIUMS = [
       title: 'Certifications',
       certs: [
         { title: 'Google AI Professional Certificate', issuer: 'Google · Coursera', href: 'https://www.coursera.org/account/accomplishments/professional-cert/certificate/V00M6JVIR24O' },
+        { title: 'IBM AI Engineering Professional Certificate', issuer: 'IBM · Coursera', href: 'https://www.coursera.org/account/accomplishments/specialization/0UEVNFVYBN8V' },
         { title: 'Advanced Machine Learning on Google Cloud', issuer: 'Google Cloud · Coursera', href: 'https://www.coursera.org/account/accomplishments/specialization/8ZNO2FZQPFR5' },
         { title: 'IBM Machine Learning Professional Certificate', issuer: 'IBM · Coursera', href: 'https://www.coursera.org/account/accomplishments/specialization/6AF4NKP5SG0W' },
         { title: 'Google Advanced Data Analytics', issuer: 'Google · Coursera', href: 'https://www.coursera.org/account/accomplishments/specialization/2M7FIVKXPNCE' },
