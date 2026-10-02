@@ -66,8 +66,9 @@ export const PODIUMS = [
         {
           heading: 'Where did this portfolio Idea come from',
           text: "\u201cThere's this mini car placed on my desk, and every time I look at it, Life resets\u201d",
-          img: 'assets/life/beyond-car.png',
-          alt: 'The purple Beyond Mini 4WD toy car from my desk',
+          img: 'assets/life/beyond-car-photo.jpg',
+          photo: true, // a real photo: shown framed, not as a cut-out
+          alt: 'Photo of the purple Beyond Mini 4WD toy car on my desk',
           tip: "That's the car you're driving right now",   // pops up when you hover the picture
         },
       ],

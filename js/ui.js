@@ -131,13 +131,14 @@ export class UI {
     if (p.vision) {
       p.vision.forEach((s, i) => {
         body.append(el('h3', { class: 'section' }, s.heading));
-        body.append(el('div', { class: `story${i % 2 ? ' story--flip' : ''}` },
+        const imgClass = `story__img${s.photo ? ' story__img--photo' : ''}`;
+        body.append(el('div', { class: `story${i % 2 ? ' story--flip' : ''}${s.photo ? ' story--photo' : ''}` },
           el('p', { class: 'story__text' }, s.text),
           s.tip
             ? el('span', { class: 'story__pic', tabindex: '0' },
-                el('img', { class: 'story__img', src: s.img, alt: s.alt, loading: 'lazy' }),
+                el('img', { class: imgClass, src: s.img, alt: s.alt, loading: 'lazy' }),
                 el('span', { class: 'story__tip', role: 'tooltip' }, s.tip))
-            : el('img', { class: 'story__img', src: s.img, alt: s.alt, loading: 'lazy' }),
+            : el('img', { class: imgClass, src: s.img, alt: s.alt, loading: 'lazy' }),
         ));
       });
     }
